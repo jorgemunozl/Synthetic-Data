@@ -14,6 +14,10 @@ from openai import OpenAI
 # chain (runnable) => llm + output parser. + prompt =>
 # tools => function calling => brinda las definiciones => una tool es una function que lo que hace es decirle al modelo que datos ingresa y que datos exactos quiere que retorne,
 
+
+# Let's create a bucle
+
+
 def createImage(prompt: str, name: str, size: str = "1024x1024", quality: str = "standard") -> bool:
     """
     Create an image and save it as .png
