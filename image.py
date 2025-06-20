@@ -2,7 +2,6 @@ import os
 import requests
 from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 
@@ -26,19 +25,4 @@ prompt_mine1= """A flowchart empty"""
 """
 
 
-response = client.images.generate(
-    model="dall-e-3",
-    prompt=prompt_mine1,
-    size="1024x1024",
-    quality="standard",
-    n=1,
-)
 
-image_url = response.data[0].url
-
-print("Generated image URL:", image_url)
-img_data = requests.get(image_url).content
-
-with open('generated_image.png','wb') as f:
-    f.write(img_data)
-print("Well")
