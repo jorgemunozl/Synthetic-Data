@@ -60,22 +60,23 @@ def createFile(text: str, namefile:str) -> None:
 
 listTool = [createFile,createImage]
 
-firstMessage = 'Batman on the beach, create a image'
+firstMessage = """
+
+I want that you create a prompt for family in the beach, and using that prompt create a image and save it,
+also create a .txt saying that you succed if that were the case
+
+"""
+
 name1 ,name2, profession1, profession2 =  'Juan','Sebas','teacher','police'
+
 sys_msgGPT4 = f"You are {name1}, you are {profession1}"
-sys_msgGPT3 = f"You are {name2}, you are {profession2}"
-
-
 sys_msgGPT4 = SystemMessage(content = sys_msgGPT4)
-sys_msgGPT3 = SystemMessage(content = sys_msgGPT3)
 
-interaction = 2
+numImages = 2
 
 gpt4_1_chat = ChatOpenAI(model="gpt-4o", temperature=0)
 gpt35_chat = ChatOpenAI(model="gpt-3.5-turbo-0125", temperature=0)
-gpt4_1_chat = gpt4_1_chat.bind_tools([createImage])
-
-#gpt35_chat = gpt35_chat.bind_tools([createFile,createImage])
+gpt4_1_chat = gpt4_1_chat.bind_tools(listTool)
 
 class State(MessagesState):
   count: int
@@ -85,39 +86,25 @@ class State(MessagesState):
 def callingGPT4(state: State) -> dict:
   resp: AIMessage = gpt4_1_chat.invoke([sys_msgGPT4]+state["messages"])
   return {"messages": [resp],"count":state["count"]+1}
-
-def callingGPT35(state: State) -> dict:
-    resp: AIMessage = gpt35_chat.invoke([sys_msgGPT3]+state["messages"]) 
-    return {"messages": [resp],"count":state["count"]+1}
-
-def route4(state: State) -> Literal["callingGPT35", "__end__"]:
-    return "__end__" if (state["count"] >= interaction) else "callingGPT35"
-
-def route35(state: State) -> Literal["callingGPT4", "__end__"]:
-    return "__end__" if (state["count"] >= interaction) else "callingGPT4"
-
 # --------
 
 builder = StateGraph(State)
 builder.add_node("callingGPT4",callingGPT4)
-builder.add_node("createFile",ToolNode([createImage]))
+builder.add_node("createFile",ToolNode(listTool))
 
 builder.add_edge(START, "callingGPT4")
 builder.add_edge("createFile", "callingGPT4")
+
+#builder.add_edge("callingGPT4",route)
+
 builder.add_conditional_edges(
 "callingGPT4",
 tools_condition,
 {
     "tools":"createFile",
-    "__end__":END
-}
-)
+})
 
 builder.add_edge("createFile","callingGPT4")
-
-#builder.add_conditional_edges("callingGPT4", route4, {"createFile":"createFile","__end__":END})#"callingGPT35": "callingGPT35", "__end__": END})
-#builder.add_conditional_edges("callingGPT35", route35, {"createFile":"createFile","callingGPT4": "callingGPT4", "__end__": END})
-
 # -------
 
 graph = builder.compile()
@@ -135,6 +122,3 @@ initial = {
 messages = graph.invoke(initial)
 for m in messages['messages']:
     m.pretty_print()
-
-
-#   builder.add_node(callingGPT35,callingGPT35)
