@@ -1,0 +1,12 @@
+[project]
+name = "synthetic-data"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "langchain>=0.3.26",
+    "langchain-openai>=0.3.24",
+    "langgraph>=0.4.8",
+    "pydantic>=2.11.7",
+]

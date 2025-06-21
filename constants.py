@@ -1,6 +1,7 @@
-{
-  "flowId": "103944",
-  "name": "process_coffee",
+from pydantic import BaseModel, Field
+
+class SeedBase(BaseModel):
+  name: str = Field(default="process_coffee"),
   "description": "Process to prepare and drink coffee",
   "version": "1.0",
   "startNode": "n1",
@@ -30,4 +31,7 @@
     { "id": "e11", "from": "n8", "to": "n7", "condition": null },
     { "id": "e12", "from": "n9", "to": "n10", "condition": null }
   ]
-}
+
+
+
+
