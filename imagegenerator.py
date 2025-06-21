@@ -14,13 +14,9 @@ from openai import OpenAI
 # chain (runnable) => llm + output parser. + prompt =>
 # tools => function calling => brinda las definiciones => una tool es una function que lo que hace es decirle al modelo que datos ingresa y que datos exactos quiere que retorne,
 
-
-# Let's create a bucle
-
-
 def createImage(prompt: str, name: str, size: str = "1024x1024", quality: str = "standard") -> bool:
     """
-    Create an image and save it as .png
+    Create an image and save it as .png in the images subdirectory
 
     Args:
         prompt : str
@@ -39,31 +35,41 @@ def createImage(prompt: str, name: str, size: str = "1024x1024", quality: str = 
         )
         image_url = response.data[0].url
         img_data = requests.get(image_url).content
-        with open(name, 'wb') as f:
+        dir_path = "images"
+        os.makedirs(dir_path, exist_ok=True)
+        file_path = os.path.join(dir_path, name)
+        with open(file_path, 'wb') as f:
             f.write(img_data)
         return True
     except Exception as e:
         print(f"Error creating image: {e}")
         return False
 
-def createFile(text: str, namefile:str) -> None:
+def createFile(text: str, namefile: str) -> bool:
     """
-    Saves a string as a .txt
+    Saves a string as a .txt in the prompts subdirectory
 
     Args:
         text: str
         namefile: str 
     """
-    with open(namefile,"w") as f:
-        f.write(text)
-    return None
+    try:
+        dir_path = "prompts"
+        os.makedirs(dir_path, exist_ok=True)
+        file_path = os.path.join(dir_path, namefile)
+        with open(file_path, "w") as f:
+            f.write(text)
+        return True
+    except Exception as e:
+        print(f"Error creating file: {e}")
+    return False
 
 listTool = [createFile,createImage]
 
 firstMessage = """
 
-I want that you create a prompt for family in the beach, and using that prompt create a image and save it,
-also create a .txt saying that you succed if that were the case
+I want that you create a prompt of any image that you want in preference add some randomness, and using that prompt to create a image and save it,
+also create a .txt where you save that prompt.
 
 """
 
@@ -75,7 +81,6 @@ sys_msgGPT4 = SystemMessage(content = sys_msgGPT4)
 numImages = 2
 
 gpt4_1_chat = ChatOpenAI(model="gpt-4o", temperature=0)
-gpt35_chat = ChatOpenAI(model="gpt-3.5-turbo-0125", temperature=0)
 gpt4_1_chat = gpt4_1_chat.bind_tools(listTool)
 
 class State(MessagesState):
@@ -84,27 +89,44 @@ class State(MessagesState):
 # --------
 
 def callingGPT4(state: State) -> dict:
-  resp: AIMessage = gpt4_1_chat.invoke([sys_msgGPT4]+state["messages"])
-  return {"messages": [resp],"count":state["count"]+1}
+    loop_inst = HumanMessage(
+        content=firstMessage
+    )
+    ctx = [sys_msgGPT4] + state["messages"] + [loop_inst]
+    numImages = 2
+    resp: AIMessage = gpt4_1_chat.invoke(ctx)
+    
+    return {"messages": [resp],"count":state["count"]+1}
+
+def route(state: State) -> Literal ["callingGPT4","__end__"]:
+
+    return "__end__" if (state["count"] == numImages) else "callingGPT4"
+
 # --------
 
 builder = StateGraph(State)
 builder.add_node("callingGPT4",callingGPT4)
-builder.add_node("createFile",ToolNode(listTool))
+builder.add_node("tools",ToolNode(listTool))
 
 builder.add_edge(START, "callingGPT4")
-builder.add_edge("createFile", "callingGPT4")
-
-#builder.add_edge("callingGPT4",route)
+#builder.add_edge("tools", "callingGPT4")
 
 builder.add_conditional_edges(
 "callingGPT4",
 tools_condition,
 {
-    "tools":"createFile",
+    "tools":"tools",
+    "__end__": END
 })
 
-builder.add_edge("createFile","callingGPT4")
+builder.add_conditional_edges(
+    "tools",
+    route,
+    {
+        "callingGPT4": "callingGPT4",
+        "__end__": END
+    }
+)
 # -------
 
 graph = builder.compile()
