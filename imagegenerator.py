@@ -64,18 +64,21 @@ def createFile(text: str, namefile: str) -> bool:
         print(f"Error creating file: {e}")
     return False
 
+def readJson():
+    pass
+
 listTool = [createFile,createImage]
 
 firstMessage = """
 
-I want that you create a prompt of any image that you want in preference add some randomness, and using that prompt to create a image and save it,
+I want that you create a prompt of any image that you want in the topic of science, and using that prompt to create a image and save it,
 also create a .txt where you save that prompt.
 
 """
 
-name1 ,name2, profession1, profession2 =  'Juan','Sebas','teacher','police'
+skill0 , skill1 = "creative", "tidy"
 
-sys_msgGPT4 = f"You are {name1}, you are {profession1}"
+sys_msgGPT4 = f"You are {skill0} and {skill1}"
 sys_msgGPT4 = SystemMessage(content = sys_msgGPT4)
 
 numImages = 2
@@ -87,6 +90,7 @@ class State(MessagesState):
   count: int
 
 # --------
+
 
 def callingGPT4(state: State) -> dict:
     loop_inst = HumanMessage(
@@ -109,8 +113,6 @@ builder.add_node("callingGPT4",callingGPT4)
 builder.add_node("tools",ToolNode(listTool))
 
 builder.add_edge(START, "callingGPT4")
-#builder.add_edge("tools", "callingGPT4")
-
 builder.add_conditional_edges(
 "callingGPT4",
 tools_condition,
@@ -140,6 +142,8 @@ initial = {
     "messages":  [HumanMessage(content=firstMessage)],
     "count": 0
 }
+
+# --------
 
 messages = graph.invoke(initial)
 for m in messages['messages']:
