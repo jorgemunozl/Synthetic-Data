@@ -7,12 +7,31 @@ from typing_extensions import Literal
 from langgraph.prebuilt import ToolNode, tools_condition
 import requests
 from openai import OpenAI
+import json
 
 # prompt => string template con variables, basado en formato ninja => prompt1: "mi nombre es {name}" => prompt1.name = joel => prompt1 = "mi nombre es joel"
 # output_parsers => structured output => "oye analiza si el comprador esta molesto o feliz, pero respondeme de la siguiente forma '{response: "feliz"}'" => "{response: triste}"
 # llm => packages ya listos de los models para consumirlos => axios.post ("https://api.openai.com/")
 # chain (runnable) => llm + output parser. + prompt =>
 # tools => function calling => brinda las definiciones => una tool es una function que lo que hace es decirle al modelo que datos ingresa y que datos exactos quiere que retorne,
+
+"""
+{
+  "flowId": "103944, int
+  "name": "process_coffee", str
+  "description": "Process to prepare and drink coffee", str
+  "version": "1.0", 
+  "startNode": "n1",
+  "nodes": [
+    { "id": "n1", "type": "start", "label": "Inicio" },
+    { "id": "n2", "type": "decision", "label": "¿Quieres café?" },
+  ],
+  "edges": [ id=[(e1,n1,n2,condition)]
+    { "id": "e1", "from": "n1", "to": "n2", "condition": null },
+    { "id": "e2", "from": "n2", "to": "n10", "condition": "NO" },
+  ]
+}
+"""
 
 def createImage(prompt: str, name: str, size: str = "1024x1024", quality: str = "standard") -> bool:
     """
@@ -67,9 +86,29 @@ def createFile(text: str, namefile: str) -> bool:
 def readJson():
     pass
 
+def createJson(info: dict, namefile: str) -> bool:
+    """
+    Saves a dict as a .json in the "jsons" subdirectory
+
+    Args:
+        info : dict
+        namefile: str (ends in json)
+    """
+    try:
+        dir_path = "jsons"
+        os.makedirs(dir_path, exist_ok=True)
+        file_path = os.path.join(dir_path, namefile)
+        with open(file_path, "w") as f:
+            f.write(text)
+        return True
+    except Exception as e:
+        print(f"Error creating file: {e}")
+    return False
+
 listTool = [createFile,createImage]
 
-firstMessage = """
+firstMessage = 
+"""
 
 I want that you create a prompt of any image that you want in the topic of science, and using that prompt to create a image and save it,
 also create a .txt where you save that prompt.
