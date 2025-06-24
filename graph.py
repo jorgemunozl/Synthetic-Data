@@ -8,9 +8,12 @@ from langgraph.prebuilt import ToolNode, tools_condition
 import requests
 from openai import OpenAI
 import json
-from .config import GraphConfig
 
-listTool = [createFile,createImage´]
+from nodes import createFile
+
+# from .config import GraphConfig
+
+listTool = [createFile,createImage]
 
 
 skill0 , skill1 = "creative", "tidy"
@@ -45,6 +48,7 @@ builder.add_conditional_edges(
         "__end__": END
     }
 )
+
 # -------
 
 graph = builder.compile()

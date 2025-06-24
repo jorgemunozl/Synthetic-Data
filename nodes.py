@@ -2,8 +2,8 @@ from pydantic import BaseModel
 from langchain_core.runnables import RunnableConfig
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from .models import GeneratorVariantOutput
-from .constants import SeedBase
+#from .models import GeneratorVariantOutput
+#from .constants import SeedBase
 
 def createImage(prompt: str, name: str, size: str = "1024x1024", quality: str = "standard") -> bool:
     """
@@ -77,15 +77,14 @@ def createJson(info: dict, namefile: str) -> bool:
         print(f"Error creating file: {e}")
     return False
 
-
-
+"""
 
 async def generate_variants(state: State, *, config: RunnableConfig) -> dict:
     llm = ChatOpenAI(model=config.base_model, temperature=0).with_structured_output(GeneratorVariantOutput)
     prompt = ChatPromptTemplate.from_messages([
-        ("system", """
+        ("system", ""
             Crea 10 ejemplos mas del siguiente seed {seed}
-        """),
+        ""),
         ("human", "")
     ])
     
@@ -100,7 +99,7 @@ async def generate_variants(state: State, *, config: RunnableConfig) -> dict:
         "schemas_generations": response_parsed
     }
 
-
+"""
 
 def route(state: State) -> Literal ["callingGPT4","__end__"]:
 

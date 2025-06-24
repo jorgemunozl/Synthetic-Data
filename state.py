@@ -3,6 +3,7 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from .models import NodesVariant
 from .constants import SeedData
+
 class GeneratorVariantState(BaseModel):
     name: Optional[str] = Field(description="")
     description: Optional[str]= Field(description="")
@@ -11,7 +12,6 @@ class GeneratorVariantState(BaseModel):
     edges: Optional[str]= Field(description="")
 
 class State(BaseModel):
-
   messages: Annotated[list[BaseMessage], add_messages] = Field(
         default_factory=list,
         description="The history of messages",

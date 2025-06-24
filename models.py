@@ -2,14 +2,13 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
-class NodeTypesEnum(str, Enum)
+class NodeTypesEnum(str, Enum):
     START = "start"
     DECISION = "decision"
     TASK = "task"
     END = "end"
 
-
-class ConditionOptionsEnum(str, Enum)
+class ConditionOptionsEnum(str, Enum):
     YES = "yes"
     NO = "no"
 
@@ -30,5 +29,3 @@ class GeneratorVariantOutput(BaseModel):
     startNode: str= Field(description="")
     nodes: NodesVariant= Field(description="")
     edges: str= Field(description="")
-    
-    
