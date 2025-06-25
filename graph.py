@@ -1,9 +1,10 @@
 from langchain_openai import ChatOpenAI
 from langgraph.graph import MessagesState, StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
+from langchain_core.runnables.graph import MermaidDrawMethod
 from openai import OpenAI
 import json
-import requests
+#import requests
 from typing_extensions import Literal
 from nodes import *
 from config import GraphConfig
@@ -12,9 +13,17 @@ from state import State
 builder = StateGraph(State)
 
 builder.add_node("generate_variants", generate_variants)
-builder.add_node("tools",ToolNode([createImage]))
+builder.add_node("createImage",createImage)
 
 builder.add_edge(START, "generate_variants")
+builder.add_edge("generate_variants","createImage")
+builder.add_edge("createImage",END)
+
+#builder.add_edge("generate_variants",END)
+
+"""
+builder.add_edge("generate_variants","tools")
+builder.add_edge("tools",END)
 builder.add_conditional_edges(
     "generate_variants",
     tools_condition,
@@ -30,12 +39,15 @@ builder.add_conditional_edges(
         "__end__": END
     }
 )
-#builder.add_edge("generate_variants",END)
+"""
 
 graph = builder.compile()
-#image = graph.get_graph().draw_mermaid_png()
-#with open("graphT.png", "wb") as f:
-#    f.write(image)
+image = graph.get_graph().draw_mermaid_png(
+    draw_method=MermaidDrawMethod.PYPPETEER
+)
+
+with open("graphLanggraph.png", "wb") as f:
+    f.write(image)
 
 result = graph.invoke({
     "messages": [],
@@ -44,13 +56,15 @@ result = graph.invoke({
     "schemas_generations": []
     })
 
+"""
 output = result["schemas_generations"][0].model_dump()
 output = GeneratorVariantOutput.model_validate(output)
 output = output.model_dump_json(indent = 2)
-print(output)
+"""
+print(result)
 
-with open("seed.json", "w", encoding="utf-8") as f:
-    f.write(output)
+#with open("seed.json", "w", encoding="utf-8") as f:
+#   f.write(output)
 
 
 

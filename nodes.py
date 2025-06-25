@@ -11,7 +11,9 @@ from config import GraphConfig
 from prompts import *
 import os
 
-def createImage(stringFlowchart: str, name: str, size: str = "1024x1024", quality: str = "standard") -> bool:
+# stringFlowchart: str, name: str, size: str = "1024x1024", quality: str = "standard") -> bool:
+
+def createImage() -> dict:
     
     """
     Create an image and save it as .png in the images subdirectory
@@ -39,10 +41,17 @@ def createImage(stringFlowchart: str, name: str, size: str = "1024x1024", qualit
         file_path = os.path.join(dir_path, name)
         with open(file_path, 'wb') as f:
             f.write(img_data)
-        return True
+        return {}
     except Exception as e:
         print(f"Error creating image: {e}")
-        return False
+        return {}
+
+def givepromptImage(state:State) -> dict :
+
+    output = state["schemas_generations"][0].model_dump()
+    output = GeneratorVariantOutput.model_validate(output)
+    output = output.model_dump_json(indent = 2)
+    return {"output":output}
 
 def generate_variants(state: State) -> dict:
     """This probably would need a description such that"""
