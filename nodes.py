@@ -11,17 +11,19 @@ from config import GraphConfig
 from prompts import *
 import os
 
-def createImage(prompt: str, name: str, size: str = "1024x1024", quality: str = "standard") -> bool:
+def createImage(stringFlowchart: str, name: str, size: str = "1024x1024", quality: str = "standard") -> bool:
+    
     """
     Create an image and save it as .png in the images subdirectory
 
     Args:
-        prompt : str
+        stringFlowchart : str
         name : str (it should include the .png at the end)
         size : str
         quality : str
     """
     try:
+        prompt =promptImage + stringFlowchart
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.images.generate(
             model="dall-e-3",
@@ -45,7 +47,9 @@ def createImage(prompt: str, name: str, size: str = "1024x1024", quality: str = 
 def generate_variants(state: State) -> dict:
     """This probably would need a description such that"""
 
-    llm = ChatOpenAI(model = "gpt-4o", temperature = 0).with_structured_output(GeneratorVariantOutput)
+    llm = ChatOpenAI(model = "gpt-4o", temperature = 0)
+    llm = llm.bind_tools([createImage])
+    llm = llm.with_structured_output(GeneratorVariantOutput)
 
     #parser = PydanticOutputParser(pydantic_object = GeneratorVariantOutput)
     
@@ -66,6 +70,6 @@ def generate_variants(state: State) -> dict:
         "schemas_generations": [result] # "schemas_generations": response_parsed
     }
 
-def route(state: State) -> Literal ["callingGPT4","__end__"]:
-    return "__end__" if (state["count"] == numImages) else "callingGPT4"
+def route(state: State) -> Literal ["generate_variants","__end__"]:
+    return "__end__" if (state["number_generations"] == 2) else "generate_variants"
 

@@ -1,52 +1,52 @@
 {
-  "name": "Batman: The Dark Knight's Journey",
-  "description": "A flowchart representing Batman's journey from a crime scene investigation to capturing the villain.",
+  "name": "Batman Adventure",
+  "description": "A simple flowchart depicting a typical Batman adventure, from receiving a call for help to capturing the villain.",
   "startNode": "1",
   "nodes": [
     {
       "id": "1",
       "type": "start",
-      "label": "Crime Scene Investigation"
+      "label": "Bat-Signal Activated"
     },
     {
       "id": "2",
-      "type": "decision",
-      "label": "Evidence Found?"
+      "type": "task",
+      "label": "Batman Gears Up"
     },
     {
       "id": "3",
-      "type": "task",
-      "label": "Analyze Evidence"
+      "type": "decision",
+      "label": "Is the Villain Identified?"
     },
     {
       "id": "4",
-      "type": "decision",
-      "label": "Suspect Identified?"
+      "type": "task",
+      "label": "Investigate Crime Scene"
     },
     {
       "id": "5",
       "type": "task",
-      "label": "Interrogate Suspect"
+      "label": "Analyze Clues"
     },
     {
       "id": "6",
       "type": "decision",
-      "label": "Confession Obtained?"
+      "label": "Is the Villain Located?"
     },
     {
       "id": "7",
       "type": "task",
-      "label": "Capture Villain"
+      "label": "Confront Villain"
     },
     {
       "id": "8",
-      "type": "end",
-      "label": "Villain Captured"
+      "type": "task",
+      "label": "Capture Villain"
     },
     {
       "id": "9",
       "type": "end",
-      "label": "Investigation Continues"
+      "label": "Gotham is Safe Again"
     }
   ],
   "edges": [
@@ -60,54 +60,54 @@
       "id": "e2",
       "from_": "2",
       "to": "3",
-      "condition": "yes"
+      "condition": null
     },
     {
       "id": "e3",
-      "from_": "2",
-      "to": "9",
+      "from_": "3",
+      "to": "4",
       "condition": "no"
     },
     {
       "id": "e4",
       "from_": "3",
-      "to": "4",
-      "condition": null
+      "to": "6",
+      "condition": "yes"
     },
     {
       "id": "e5",
       "from_": "4",
       "to": "5",
-      "condition": "yes"
-    },
-    {
-      "id": "e6",
-      "from_": "4",
-      "to": "9",
-      "condition": "no"
-    },
-    {
-      "id": "e7",
-      "from_": "5",
-      "to": "6",
       "condition": null
     },
     {
-      "id": "e8",
+      "id": "e6",
+      "from_": "5",
+      "to": "3",
+      "condition": null
+    },
+    {
+      "id": "e7",
       "from_": "6",
       "to": "7",
       "condition": "yes"
     },
     {
-      "id": "e9",
+      "id": "e8",
       "from_": "6",
-      "to": "9",
+      "to": "4",
       "condition": "no"
     },
     {
-      "id": "e10",
+      "id": "e9",
       "from_": "7",
       "to": "8",
+      "condition": null
+    },
+    {
+      "id": "e10",
+      "from_": "8",
+      "to": "9",
       "condition": null
     }
   ]

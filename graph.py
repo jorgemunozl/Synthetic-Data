@@ -12,16 +12,30 @@ from state import State
 builder = StateGraph(State)
 
 builder.add_node("generate_variants", generate_variants)
-builder.add_node("createImage",createImage)
+builder.add_node("tools",ToolNode([createImage]))
 
 builder.add_edge(START, "generate_variants")
-builder.add_edge("createImage","generate_variants")
-builder.add_edge("generate_variants",END)
+builder.add_conditional_edges(
+    "generate_variants",
+    tools_condition,
+    {
+        "tools":"tools",
+        "__end__": END
+    })
+builder.add_conditional_edges(
+    "tools",
+    route,
+    {
+        "generate_variants": "generate_variants",
+        "__end__": END
+    }
+)
+#builder.add_edge("generate_variants",END)
 
 graph = builder.compile()
-image = graph.get_graph().draw_mermaid_png()
-with open("graphT.png", "wb") as f:
-    f.write(image)
+#image = graph.get_graph().draw_mermaid_png()
+#with open("graphT.png", "wb") as f:
+#    f.write(image)
 
 result = graph.invoke({
     "messages": [],
