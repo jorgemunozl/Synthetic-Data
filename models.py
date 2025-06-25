@@ -19,7 +19,7 @@ class NodesVariant(BaseModel):
 
 class EdgesVariant(BaseModel):
     id: str = Field(description="")
-    from: str = Field(description="")
+    from_: str = Field(description="")
     to: str = Field(description="")
     condition: Optional[ConditionOptionsEnum] = Field(description="")
 

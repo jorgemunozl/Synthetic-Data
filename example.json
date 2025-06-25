@@ -1,19 +1,7 @@
-from pydantic import BaseModel, Field
-from typing import Optional
-from models import NodesVariant
-import json
-
-
-class SeedBase(BaseModel):
-  name: str = Field(default = "process_coffee"),
-  description: str = Field(default = "Process to prepare and drink coffee")
-  startNode: Optional[str]      = Field(description = "")
-  nodes: Optional[NodesVariant] = Field(description = "")
-  edges: Optional[str]          = Field(description = "")
-
-
-"""
-  "description": ",
+{
+  "flowId": "103944",
+  "name": "process_coffee",
+  "description": "Process to prepare and drink coffee",
   "version": "1.0",
   "startNode": "n1",
   "nodes": [
@@ -42,4 +30,4 @@ class SeedBase(BaseModel):
     { "id": "e11", "from": "n8", "to": "n7", "condition": null },
     { "id": "e12", "from": "n9", "to": "n10", "condition": null }
   ]
-"""
+}
