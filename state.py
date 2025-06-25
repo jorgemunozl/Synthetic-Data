@@ -21,6 +21,9 @@ class State(BaseModel):
         default_factory = list,
         description = "The history of messages",
   )
-  seed: str = Field(default = SeedBase.model_json_schema(), description = " ")
-  number_generations: int = Field(default = 3, description = " ")
-  schemas_generations: list[GeneratorVariantState] = Field(default_factory = list, description = " ")
+  seed: str = Field(default = SeedBase.model_json_schema(), description = "Seed base who is gonna to be the model")
+  number_generations: int = Field(default = 3, description = "Number of images")
+  schemas_generations: list[GeneratorVariantState] = Field(
+    default_factory = list,
+    description = "Here is where all the json are gonna be saved"
+  ) 
