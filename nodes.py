@@ -2,12 +2,14 @@ from pydantic import BaseModel
 from langchain_core.runnables import RunnableConfig
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-
-
+from langchain_core.output_parsers import PydanticOutputParser
+from typing_extensions import Literal
 from models import GeneratorVariantOutput
 from constants import SeedBase
 from state import State
 from config import GraphConfig
+from prompts import *
+import os
 
 def createImage(prompt: str, name: str, size: str = "1024x1024", quality: str = "standard") -> bool:
     """
@@ -40,76 +42,30 @@ def createImage(prompt: str, name: str, size: str = "1024x1024", quality: str = 
         print(f"Error creating image: {e}")
         return False
 
-def createFile(text: str, namefile: str) -> bool:
-    """
-    Saves a string as a .txt in the prompts subdirectory
+def generate_variants(state: State) -> dict:
+    """This probably would need a description such that"""
 
-    Args:
-        text: str
-        namefile: str 
-    """
-    try:
-        dir_path = "prompts"
-        os.makedirs(dir_path, exist_ok=True)
-        file_path = os.path.join(dir_path, namefile)
-        with open(file_path, "w") as f:
-            f.write(text)
-        return True
-    except Exception as e:
-        print(f"Error creating file: {e}")
-    return False
+    llm = ChatOpenAI(model = "gpt-4o", temperature = 0).with_structured_output(GeneratorVariantOutput)
 
-def readJson():
-    pass
-
-def createJson(info: dict, namefile: str) -> bool:
-    """
-    Saves a dict as a .json in the "jsons" subdirectory
-
-    Args:
-        info : dict
-        namefile: str (ends in json)
-    """
-    try:
-        dir_path = "jsons"
-        os.makedirs(dir_path, exist_ok=True)
-        file_path = os.path.join(dir_path, namefile)
-        with open(file_path, "w") as f:
-            f.write(text)
-        return True
-    except Exception as e:
-        print(f"Error creating file: {e}")
-    return False
-
-# THINK IT LIKE FOLLOW: GENERATE VARIANTS IS A MODEL ITSELF COMPLETELY INDEPEDENT AND SEPARATE FROM THE GRAPH!
-#async
-def generate_variants(state: State, *, config: RunnableConfig) -> dict:
-
-    llm = ChatOpenAI(model = GraphConfig.base_model, temperature = 0).with_structured_output(GeneratorVariantOutput)
+    #parser = PydanticOutputParser(pydantic_object = GeneratorVariantOutput)
     
-    parser = PydanticOutputParser(pydantic_object = GeneratorVariantOutput)
-
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "Please output the seed variant wrapped in ```json``` fences."),
-        ("system", parser.get_format_instructions()),
-        ("human", f"Create one example of the follow seed {state.seed}")
+        ("system", promptSystem),
+        ("human", promptHuman)
     ])
     
-    chain = prompt | llm | parser
-
-    #response = chain.ainvoke(input= state.seed)  await 
-    result: GeneratorVariantOutput =  chain.ainvoke({"query":state.seed})
-
+    #chain = prompt | llm | parser
+    chain = prompt | llm
+    
+    #response = chain.ainvoke(input= state.seed)  #await 
+    
+    result: GeneratorVariantOutput =  chain.invoke({"seed_value":state.seed})
     #response_parsed = GeneratorVariantOutput.model_validate(response) # PydanticOutpaParser do it. Prove!
     
     return {
-        "schemas_generations": result # "schemas_generations": response_parsed
+        "schemas_generations": [result] # "schemas_generations": response_parsed
     }
 
-# If is asynchronic then it create the n json is one shot. There is no need from a bucle! First let's do it
-# only with one example. One step at a time.
+def route(state: State) -> Literal ["callingGPT4","__end__"]:
+    return "__end__" if (state["count"] == numImages) else "callingGPT4"
 
-# So it returns a dict of one element, key string and value Generatorvariantoutput. 
-# def route(state: State) -> Literal ["callingGPT4","__end__"]:
-
-#    return "__end__" if (state["count"] == numImages) else "callingGPT4"

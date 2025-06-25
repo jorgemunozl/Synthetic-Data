@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from enum import Enum
 
 class NodeTypesEnum(str, Enum):
@@ -8,14 +8,14 @@ class NodeTypesEnum(str, Enum):
     TASK = "task"
     END = "end"
 
+class NodesVariant(BaseModel): # This preserver
+    id: str             = Field(description = "")
+    type: NodeTypesEnum = Field(description = "")
+    label: str          = Field(description = "freedom")
+# ------
 class ConditionOptionsEnum(str, Enum):
     YES = "yes"
     NO = "no"
-
-class NodesVariant(BaseModel):
-    id: str = Field(description="")
-    type: NodeTypesEnum = Field(description="")
-    label: str = Field(description="")
 
 class EdgesVariant(BaseModel):
     id: str    = Field(description="")
@@ -25,7 +25,8 @@ class EdgesVariant(BaseModel):
 
 class GeneratorVariantOutput(BaseModel):
     name: str = Field(description="")
-    description: str= Field(description="")
-    startNode: str= Field(description="")
-    nodes: NodesVariant= Field(description="")
-    edges: str= Field(description="")
+    description: str = Field(description="")
+    startNode: str = Field(description="")
+    nodes: list[NodesVariant] = Field(default_factory = list,description="")
+    edges: list[EdgesVariant] = Field(default_factory= list,description="")
+

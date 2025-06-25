@@ -1,0 +1,114 @@
+{
+  "name": "Batman: The Dark Knight's Journey",
+  "description": "A flowchart representing Batman's journey from a crime scene investigation to capturing the villain.",
+  "startNode": "1",
+  "nodes": [
+    {
+      "id": "1",
+      "type": "start",
+      "label": "Crime Scene Investigation"
+    },
+    {
+      "id": "2",
+      "type": "decision",
+      "label": "Evidence Found?"
+    },
+    {
+      "id": "3",
+      "type": "task",
+      "label": "Analyze Evidence"
+    },
+    {
+      "id": "4",
+      "type": "decision",
+      "label": "Suspect Identified?"
+    },
+    {
+      "id": "5",
+      "type": "task",
+      "label": "Interrogate Suspect"
+    },
+    {
+      "id": "6",
+      "type": "decision",
+      "label": "Confession Obtained?"
+    },
+    {
+      "id": "7",
+      "type": "task",
+      "label": "Capture Villain"
+    },
+    {
+      "id": "8",
+      "type": "end",
+      "label": "Villain Captured"
+    },
+    {
+      "id": "9",
+      "type": "end",
+      "label": "Investigation Continues"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "from_": "1",
+      "to": "2",
+      "condition": null
+    },
+    {
+      "id": "e2",
+      "from_": "2",
+      "to": "3",
+      "condition": "yes"
+    },
+    {
+      "id": "e3",
+      "from_": "2",
+      "to": "9",
+      "condition": "no"
+    },
+    {
+      "id": "e4",
+      "from_": "3",
+      "to": "4",
+      "condition": null
+    },
+    {
+      "id": "e5",
+      "from_": "4",
+      "to": "5",
+      "condition": "yes"
+    },
+    {
+      "id": "e6",
+      "from_": "4",
+      "to": "9",
+      "condition": "no"
+    },
+    {
+      "id": "e7",
+      "from_": "5",
+      "to": "6",
+      "condition": null
+    },
+    {
+      "id": "e8",
+      "from_": "6",
+      "to": "7",
+      "condition": "yes"
+    },
+    {
+      "id": "e9",
+      "from_": "6",
+      "to": "9",
+      "condition": "no"
+    },
+    {
+      "id": "e10",
+      "from_": "7",
+      "to": "8",
+      "condition": null
+    }
+  ]
+}
