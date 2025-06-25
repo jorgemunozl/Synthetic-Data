@@ -16,17 +16,22 @@ from config import GraphConfig
 
 listTool = [createFile,createImage]
 
-#gpt4_1_chat = gpt4_1_chat.bind_tools(listTool)
 #builder = StateGraph(State, config=GraphConfig)
-
 builder = StateGraph(State)
 
 builder.add_node("generate_variants",generate_variants)
 
-# builder.add_node("tools",ToolNode(listTool))
-
 builder.add_edge(START, "generate_variants")
 builder.add_edge("generate_variants",END)
+
+graph = builder.compile()
+image = graph.get_graph().draw_mermaid_png()
+with open("graphT.png", "wb") as f:
+    f.write(image)
+
+# builder.add_node("tools",ToolNode(listTool))
+#gpt4_1_chat = gpt4_1_chat.bind_tools(listTool)
+#builder = StateGraph(State, config=GraphConfig)
 
 """
 builder.add_conditional_edges(
@@ -49,10 +54,6 @@ builder.add_conditional_edges(
 """
 # -------
 
-graph = builder.compile()
-image = graph.get_graph().draw_mermaid_png()
-with open("graphT.png", "wb") as f:
-    f.write(image)
 
 # sys_msgGPT4 = f"You are {skill0} and {skill1}"
 # skill0 , skill1 = "creative", "tidy"

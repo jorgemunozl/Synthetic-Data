@@ -18,9 +18,9 @@ class NodesVariant(BaseModel):
     label: str = Field(description="")
 
 class EdgesVariant(BaseModel):
-    id: str = Field(description="")
+    id: str    = Field(description="")
     from_: str = Field(description="")
-    to: str = Field(description="")
+    to: str    = Field(description="")
     condition: Optional[ConditionOptionsEnum] = Field(description="")
 
 class GeneratorVariantOutput(BaseModel):

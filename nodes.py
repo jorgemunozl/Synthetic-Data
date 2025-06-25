@@ -80,6 +80,8 @@ def createJson(info: dict, namefile: str) -> bool:
         print(f"Error creating file: {e}")
     return False
 
+
+
 async def generate_variants(state: State, *, config: RunnableConfig) -> dict:
 
     llm = ChatOpenAI(model=config.base_model, temperature=0).with_structured_output(GeneratorVariantOutput)
@@ -92,7 +94,7 @@ async def generate_variants(state: State, *, config: RunnableConfig) -> dict:
     ])
     
     chain = llm | prompt
-    
+
     response = chain.ainvoke(
         input= state.seed
     )

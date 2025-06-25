@@ -5,7 +5,7 @@ import json
 
 
 class SeedBase(BaseModel):
-  name: str = Field(default = "process_coffee"),
+  name: str = Field(default = "process_coffee", description = "something")
   description: str = Field(default = "Process to prepare and drink coffee")
   startNode: Optional[str]      = Field(description = "")
   nodes: Optional[NodesVariant] = Field(description = "")
