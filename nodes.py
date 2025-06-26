@@ -12,7 +12,7 @@ from prompts import *
 import requests
 from openai import OpenAI
 import os
-from constants import directoryOutput
+from constants import directoryOutput, NUM_IMAGES_TO_ADD, NUM_IMAGE_WE_HAVE 
 
 def generate_variants(state: State) -> dict:
 
@@ -27,8 +27,7 @@ def generate_variants(state: State) -> dict:
     #response = chain.ainvoke(input= state.seed)  #await 
     result: GeneratorVariantOutput =  chain.invoke({"seed_value":state.seed})
 
-    
-    name = str(state.number_generations) + ".json"
+    name = str(state.number_generations) + ".json" 
     dir_path = directoryOutput
     file_path = os.path.join(dir_path, name)
     output = result.model_dump_json(indent = 2)
@@ -36,15 +35,18 @@ def generate_variants(state: State) -> dict:
         f.write(output)
 
     return {"schemas_generations":  [result.model_dump()]}
-
-def route(state: State) -> Literal ["generate_variants","__end__"]:
-    return "__end__" if (state["number_generations"] == 3) else "generate_variants"
     
     """
     lst = state["schemas_generations"].copy()  # or use the existing list
     lst.append(result)
     return {"schemas_generations": lst}
     """
+
+def route(state: State) -> Literal ["generate_variants","__end__"]:
+    if (state.number_generations == (NUM_IMAGES_TO_ADD + NUM_IMAGE_WE_HAVE + 1 )):
+        return "__end__" 
+    else:
+        return "generate_variants"
 
 def createImage(state: State) -> dict:
     flowchartInfo = state.schemas_generations[0]

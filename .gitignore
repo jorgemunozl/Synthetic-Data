@@ -5,6 +5,7 @@ __pycache__/
 uv.lock
 
 outputModel/
+stuff/
 
 # C extensions
 *.so

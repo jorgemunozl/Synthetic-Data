@@ -4,5 +4,4 @@ promptImage = """
     """
 
 promptSystem = "Be minimalist"
-promptHuman = """Create one example of the topic Einstein using 
-            the follow structure {seed_value}, I want just two node"""
+promptHuman = """Create a flowchart using follow structure {seed_value}, the topic you decide, be random"""
