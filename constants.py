@@ -3,6 +3,8 @@ from typing import Optional
 from models import NodesVariant, EdgesVariant
 import json
 
+directoryOutput = "outputModel"
+
 NODE = [
       { "id": "n1", "type": "start", "label": "Inicio" },
       { "id": "n2", "type": "decision", "label": "¿Quieres café?" },

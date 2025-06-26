@@ -8,11 +8,11 @@ class NodeTypesEnum(str, Enum):
     TASK = "task"
     END = "end"
 
-class NodesVariant(BaseModel): # This preserver
+class NodesVariant(BaseModel):
     id: str             = Field(description = "")
     type: NodeTypesEnum = Field(description = "")
     label: str          = Field(description = "freedom")
-# ------
+
 class ConditionOptionsEnum(str, Enum):
     YES = "yes"
     NO = "no"

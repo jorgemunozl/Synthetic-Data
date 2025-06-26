@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 uv.lock
 
+outputModel/
+
 # C extensions
 *.so
 

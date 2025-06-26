@@ -9,76 +9,66 @@ from constants import SeedBase
 from state import State
 from config import GraphConfig
 from prompts import *
+import requests
+from openai import OpenAI
 import os
-
-# stringFlowchart: str, name: str, size: str = "1024x1024", quality: str = "standard") -> bool:
-
-def createImage() -> dict:
-    
-    """
-    Create an image and save it as .png in the images subdirectory
-
-    Args:
-        stringFlowchart : str
-        name : str (it should include the .png at the end)
-        size : str
-        quality : str
-    """
-    try:
-        prompt =promptImage + stringFlowchart
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        response = client.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            size=size,
-            quality=quality,
-            n=1,
-        )
-        image_url = response.data[0].url
-        img_data = requests.get(image_url).content
-        dir_path = "images"
-        os.makedirs(dir_path, exist_ok=True)
-        file_path = os.path.join(dir_path, name)
-        with open(file_path, 'wb') as f:
-            f.write(img_data)
-        return {}
-    except Exception as e:
-        print(f"Error creating image: {e}")
-        return {}
-
-def givepromptImage(state:State) -> dict :
-
-    output = state["schemas_generations"][0].model_dump()
-    output = GeneratorVariantOutput.model_validate(output)
-    output = output.model_dump_json(indent = 2)
-    return {"output":output}
+from constants import directoryOutput
 
 def generate_variants(state: State) -> dict:
-    """This probably would need a description such that"""
 
-    llm = ChatOpenAI(model = "gpt-4o", temperature = 0)
-    llm = llm.bind_tools([createImage])
-    llm = llm.with_structured_output(GeneratorVariantOutput)
-
+    llm = ChatOpenAI(model = "gpt-4o", temperature = 0).with_structured_output(GeneratorVariantOutput)
     #parser = PydanticOutputParser(pydantic_object = GeneratorVariantOutput)
-    
     prompt = ChatPromptTemplate.from_messages([
         ("system", promptSystem),
         ("human", promptHuman)
     ])
-    
     #chain = prompt | llm | parser
     chain = prompt | llm
-    
     #response = chain.ainvoke(input= state.seed)  #await 
-    
     result: GeneratorVariantOutput =  chain.invoke({"seed_value":state.seed})
-    #response_parsed = GeneratorVariantOutput.model_validate(response) # PydanticOutpaParser do it. Prove!
+
     
-    return {
-        "schemas_generations": [result] # "schemas_generations": response_parsed
-    }
+    name = str(state.number_generations) + ".json"
+    dir_path = directoryOutput
+    file_path = os.path.join(dir_path, name)
+    output = result.model_dump_json(indent = 2)
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(output)
+
+    return {"schemas_generations":  [result.model_dump()]}
 
 def route(state: State) -> Literal ["generate_variants","__end__"]:
-    return "__end__" if (state["number_generations"] == 2) else "generate_variants"
+    return "__end__" if (state["number_generations"] == 3) else "generate_variants"
+    
+    """
+    lst = state["schemas_generations"].copy()  # or use the existing list
+    lst.append(result)
+    return {"schemas_generations": lst}
+    """
 
+def createImage(state: State) -> dict:
+    flowchartInfo = state.schemas_generations[0]
+    flowchartInfo = flowchartInfo.model_dump()
+    flowchartInfo = GeneratorVariantOutput.model_validate(flowchartInfo)
+    flowchartInfo = flowchartInfo.model_dump_json(indent = 2)
+    prompt = promptImage + flowchartInfo
+    
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    response = client.images.generate(
+        model="dall-e-3",
+        prompt=prompt,
+        n=1)
+    image_url = response.data[0].url
+    img_data = requests.get(image_url).content
+    
+    dir_path = directoryOutput
+    os.makedirs(dir_path, exist_ok=True)
+    
+    name = str(state.number_generations) + ".png"
+    file_path = os.path.join(dir_path, name)
+
+    with open(file_path, 'wb') as f:
+        f.write(img_data)
+    
+    return {"number_generations" : state.number_generations+1}
+    
