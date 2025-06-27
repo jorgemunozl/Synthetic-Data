@@ -1,3 +1,7 @@
+# Synthetic Data
+
+Slow and steady wins the race.
+
 ## Package Manager
 
 This project uses [uv](https://github.com/astral-sh/uv) as the Python package manager for faster dependency resolution and installation.
