@@ -14,7 +14,8 @@ from openai import OpenAI
 import os
 from constants import directoryOutput, NUM_IMAGES_TO_ADD, NUM_IMAGE_WE_HAVE 
 
-def generate_variants(state: State) -> dict:
+async def generate_variants(state: State,*, config) -> dict:
+
 
     llm = ChatOpenAI(model = "gpt-4o", temperature = 0).with_structured_output(GeneratorVariantOutput)
     #parser = PydanticOutputParser(pydantic_object = GeneratorVariantOutput)
@@ -24,15 +25,8 @@ def generate_variants(state: State) -> dict:
     ])
     #chain = prompt | llm | parser
     chain = prompt | llm
-    #response = chain.ainvoke(input= state.seed)  #await 
-    result: GeneratorVariantOutput =  chain.invoke({"seed_value":state.seed})
-
-    name = str(state.number_generations) + ".json" 
-    dir_path = directoryOutput
-    file_path = os.path.join(dir_path, name)
-    output = result.model_dump_json(indent = 2)
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(output)
+    #response = chain.ainvoke(input= state.seed)  # 
+    result: GeneratorVariantOutput = await chain.ainvoke({"seed_value":state.seed})
 
     return {"schemas_generations":  [result.model_dump()]}
     
