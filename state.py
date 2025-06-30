@@ -5,11 +5,12 @@ from pydantic import BaseModel, Field
 from models import NodesVariant, EdgesVariant
 from constants import SeedBase
 
+
 class GeneratorVariantState(BaseModel):
-  name: Optional[str]           = Field(description = "")
-  description: Optional[str]    = Field(description = "")
-  startNode: Optional[str]      = Field(description = "")
-  nodes: list[NodesVariant]     = Field(
+  name: Optional[str] = Field(description="a")
+  description: Optional[str]= Field(description = "")
+  startNode: Optional[str]= Field(description = "")
+  nodes: list[NodesVariant]= Field(
     default_factory = list, 
     description = "list of NodesVariant")
   edges: list[EdgesVariant]     = Field(
@@ -28,7 +29,7 @@ class State(BaseModel):
   default_factory = list,
   description = "The history of messages"
   )
-  seed: str = Field(default = SeedBase.model_json_schema(), description = "Example of how the model would do it")
+  seed: str = Field(default = SeedBase.model_json_schema(), description = "Example of how the model should do it")
   number_generations: int = Field(default = 3, description = "Number of images")
   schemas_generations: list[GeneratorVariantOutput] = Field(
     default_factory = list,
