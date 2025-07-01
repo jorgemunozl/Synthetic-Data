@@ -18,40 +18,35 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 # Or with pip
 pip install uv
+```
 
-## Development Instructions
+If using Linux is probably that you have to add ```uv``` to your path, we can add the follow line to the shell config (like ```~/.bashr```).
+
+```
+export PATH="$HOME/.cargo/bin:$PATH"
+```
+
 Update your development workflow sections:
 
-```markdown
 ## Development
 
 ### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/yourproject.git
-cd yourproject
+git clone https://github.com/jorgemunozl/Synthetic-Data.git
+cd Synthetic-Data
+```
 
-# Install dependencies
+## Install dependencies
+
+Use
+```bash
 uv sync
+```
 
-# Activate the virtual environment (if needed)
+### Activate the virtual environment (if needed)
+
+```bash
 source .venv/bin/activate  # Linux/macOS
-# or
 .venv\Scripts\activate     # Windows
-## Prerequisites Section
-Update your prerequisites to mention uv:
-
-```markdown
-## Prerequisites
-
-- Python 3.8+ 
-- [uv](https://github.com/astral-sh/uv) package manager
-
-Future work !
-
-Level 2 generator  
-- Better prompting
-- Better ids logic
-- Use vision models
-- Use of one metric
-- Better pairing json png.
+```

@@ -29,7 +29,7 @@ class State(BaseModel):
   default_factory = list,
   description = "The history of messages"
   )
-  seed: str = Field(default = SeedBase.model_json_schema(), description = "Example of how the model should do it")
+  seed: str = Field(default = str(SeedBase.model_json_schema()), description = "Example of how the model should do it")
   number_generations: int = Field(default = 3, description = "Number of images")
   schemas_generations: list[GeneratorVariantOutput] = Field(
     default_factory = list,

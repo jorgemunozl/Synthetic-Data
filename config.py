@@ -7,7 +7,7 @@ class GraphConfig(BaseModel):
         default="gpt-4o",
         description="Base model for graph"
     )
-    image_model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = Field(
+    image_model: Annotated[str, {"__template_metadata__": {"kind": "image_model"}}] = Field(
         default="gpt-image-1",
         description="Base model for graph"
         )

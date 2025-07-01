@@ -4,25 +4,31 @@ from typing_extensions import Literal
 from models import GeneratorVariantOutput
 from state import State
 from prompts import promptSystem, promptHuman, promptImage
-import requests
+import base64
 from openai import OpenAI
 import os
 from constants import directoryOutput, NUM_IMAGES_TO_ADD, NUM_IMAGE_WE_HAVE
 from config import GraphConfig
 
 
+
 async def generate_variants(state: State, *, config) -> dict:
-    llm = ChatOpenAI(model=GraphConfig.base_model, temperature=0)
+
+    llm = ChatOpenAI(model=GraphConfig().base_model, temperature=0)
     llm = llm.with_structured_output(GeneratorVariantOutput)
     prompt = ChatPromptTemplate.from_messages([
         ("system", promptSystem),
         ("human", promptHuman)
     ])
     chain = prompt | llm
-    result: GeneratorVariantOutput = await chain.ainvoke({"seed_value": state.seed}) 
-    lst = state["schemas_generations"].copy()  
-    lst.append(result)
-    return {"schemas_generations": lst}    
+
+    output_model: GeneratorVariantOutput = await chain.ainvoke({"seed_value": state.seed}) 
+
+    new_entry = output_model.model_dump()
+    new_entry.setdefault("flowID", state.number_generations)
+    updated = state.schemas_generations + [new_entry]
+    
+    return {"schemas_generations": updated}    
     
 
 def route(state: State) -> Literal["generate_variants", "__end__"]:
@@ -33,22 +39,21 @@ def route(state: State) -> Literal["generate_variants", "__end__"]:
 
 
 def createImage(state: State) -> dict:
-    flowchartInfo = state.schemas_generations[0]
-    flowchartInfo = flowchartInfo.model_dump()
-    flowchartInfo = GeneratorVariantOutput.model_validate(flowchartInfo)
-    prompt = promptImage(flowchartInfo)
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    variant = state.schemas_generations[0]
+    variant = variant.model_dump()
+    prompt = promptImage(variant)
+    print("Creating the image")
+    client = OpenAI()
     response = client.images.generate(
-        model=GraphConfig.image_model,
+        model=GraphConfig().image_model,
         prompt=prompt,
-        n=1)
-    image_url = response.data[0].url
-    img_data = requests.get(image_url).content
+        )
+    image_base64 = response.data[0].b64_json
+    image_bytes = base64.b64decode(image_base64)
+    
     dir_path = directoryOutput
     os.makedirs(dir_path, exist_ok=True)
-    name = str(state.number_generations) + ".png"
-    file_path = os.path.join(dir_path, name)
-
-    with open(file_path, 'wb') as f:
-        f.write(img_data)
+    file_path = os.path.join(dir_path, f"{state.number_generations}.png")
+    with open(file_path, "wb") as f:
+        f.write(image_bytes)
     return {"number_generations": state.number_generations+1}
