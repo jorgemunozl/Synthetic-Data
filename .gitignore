@@ -9,7 +9,7 @@ stuff/
 
 # C extensions
 *.so
-
+*.sqlite
 # Distribution / packaging
 .Python
 build/

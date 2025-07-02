@@ -11,7 +11,6 @@ from constants import directoryOutput, NUM_IMAGES_TO_ADD, NUM_IMAGE_WE_HAVE
 from config import GraphConfig
 
 
-
 async def generate_variants(state: State, *, config) -> dict:
 
     llm = ChatOpenAI(model=GraphConfig().base_model, temperature=0)
@@ -24,22 +23,26 @@ async def generate_variants(state: State, *, config) -> dict:
 
     output_model: GeneratorVariantOutput = await chain.ainvoke({"seed_value": state.seed}) 
 
-    new_entry = output_model.model_dump()
-    new_entry.setdefault("flowID", state.number_generations)
-    updated = state.schemas_generations + [new_entry]
-    
-    return {"schemas_generations": updated}    
+    # Ensure schemas_generations is a flat list of GeneratorVariantOutput models
+    updated = list(state.schemas_generations)  # copy existing list
+    # Always append as a model instance
+    updated.append(GeneratorVariantOutput.model_validate(output_model))
+    return {"schemas_generations": updated}
     
 
 def route(state: State) -> Literal["generate_variants", "__end__"]:
-    if (state.number_generations == (NUM_IMAGES_TO_ADD+NUM_IMAGE_WE_HAVE+1)):
+    if (state.number_generations == (NUM_IMAGES_TO_ADD+NUM_IMAGE_WE_HAVE)):
         return "__end__"
     else:
         return "generate_variants"
 
 
-def createImage(state: State) -> dict:
-    variant = state.schemas_generations[0]
+def createImage(state: State) -> dict:    
+    
+    print("SECOND FUNCTION -------------")
+    print(state.number_generations)
+    print(state.schemas_generations)
+    variant = state.schemas_generations[state.number_generations]
     variant = variant.model_dump()
     prompt = promptImage(variant)
     print("Creating the image")

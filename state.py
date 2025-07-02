@@ -2,7 +2,7 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from typing import Optional, Annotated
 from pydantic import BaseModel, Field
-from models import NodesVariant, EdgesVariant
+from models import NodesVariant, EdgesVariant, GeneratorVariantOutput  # Import from models only
 from constants import SeedBase
 
 
@@ -17,12 +17,7 @@ class GeneratorVariantState(BaseModel):
     default_factory = list,
     description = "list of EdgesVariant")
 
-class GeneratorVariantOutput(BaseModel):
-    name: str = Field(description="")
-    description: str = Field(description="")
-    startNode: str = Field(description="")
-    nodes: list[NodesVariant] = Field(default_factory = list,description="")
-    edges: list[EdgesVariant] = Field(default_factory = list,description="")
+# Removed duplicate GeneratorVariantOutput definition
 
 class State(BaseModel):
   messages: Annotated[list[BaseMessage], add_messages] = Field(
@@ -34,4 +29,4 @@ class State(BaseModel):
   schemas_generations: list[GeneratorVariantOutput] = Field(
     default_factory = list,
     description = "Here is where all the json are gonna be saved"
-  ) 
+  )

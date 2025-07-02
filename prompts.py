@@ -35,7 +35,7 @@ Instructions:
 
 4. Be precise because after you create the JSON we are gonna to create images from these, for that reason is quite necesary that you are making a precise and acurately flowcharts.   
 """
-promptHuman = """Generate a simple but realistic flowchart using the follow structure {seed_value}"""
+promptHuman = """Generate a simple but realistic flowchart using the follow structure {seed_value}, about science"""
 
 def promptImage(flowChartInfo):
     promptImage = f"""
