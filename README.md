@@ -50,3 +50,7 @@ uv sync
 source .venv/bin/activate  # Linux/macOS
 .venv\Scripts\activate     # Windows
 ```
+
+Add Ids
+memory to the llm
+Detect flag true false ifexist checkpoint.sqlite trivial
