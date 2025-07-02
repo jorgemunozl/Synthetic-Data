@@ -3,11 +3,12 @@ from pydantic import BaseModel, Field
 
 
 class GraphConfig(BaseModel):
-    base_model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = Field(
+    base: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = Field(
         default="gpt-4o",
         description="Base model for graph"
     )
-    image_model: Annotated[str, {"__template_metadata__": {"kind": "image_model"}}] = Field(
+    image: Annotated[str, {"__template_metadata__": {"kind": "imag"}}] = Field(
         default="gpt-image-1",
         description="Base model for graph"
         )
+    model_temperature: int = Field(default=1, description="temperature")
