@@ -17,8 +17,8 @@ class NodesVariant(BaseModel):
 
 
 class ConditionOptionsEnum(str, Enum):
-    YES = "yes"
-    NO = "no"
+    YES = "YES"
+    NO = "NO"
 
 
 class EdgesVariant(BaseModel):

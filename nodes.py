@@ -23,9 +23,7 @@ async def generate_variants(state: State, *, config) -> dict:
 
     output_model: GeneratorVariantOutput = await chain.ainvoke({"seed_value": state.seed}) 
 
-    # Ensure schemas_generations is a flat list of GeneratorVariantOutput models
     updated = list(state.schemas_generations)  # copy existing list
-    # Always append as a model instance
     updated.append(GeneratorVariantOutput.model_validate(output_model))
     return {"schemas_generations": updated}
     
