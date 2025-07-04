@@ -10,16 +10,16 @@ import os
 from constants import directoryOutput, NUM_IMAGES_TO_ADD
 from config import GraphConfig
 
-"""
 store: dict[str, BaseChatMessageHistory] = {}
+
 def get_session_history(session_id: str) -> BaseChatMessageHistory:
     if session_id not in store:
         store[session_id] = InMemoryHistory()  # implement BaseChatMessageHistory
     return store[session_id]
-"""
 
 
-async def generate_variants(state: State, *, config) -> dict:
+
+async def generate_variants(state: State) -> dict:
 
     llm = ChatOpenAI(model=GraphConfig().base,
                      temperature=GraphConfig().model_temperature)
@@ -30,7 +30,6 @@ async def generate_variants(state: State, *, config) -> dict:
     ])
     chain = prompt | llm
 
-    """
     chain_with_memory = RunnableWithMessageHistory(
         chain,
         get_session_history,
@@ -41,7 +40,7 @@ async def generate_variants(state: State, *, config) -> dict:
         {"seed_value": state.seed},
         config={"configurable": {"session_id": "session_2"}}
         )
-    """
+
     print(f" -> Creating the schema number {state.number_generations}")
     response = await chain.ainvoke(
         {"seed_value": state.seed},
@@ -57,7 +56,8 @@ async def generate_variants(state: State, *, config) -> dict:
 
 
 def route(state: State) -> Literal["generate_variants", "__end__"]:
-    if (state.number_generations == (state.number_generations-1+NUM_IMAGES_TO_ADD)):
+    stoptIteration = state.number_actual + NUM_IMAGES_TO_ADD
+    if (state.number_generations >= stoptIteration):
         return "__end__"
     else:
         return "generate_variants"
@@ -68,7 +68,7 @@ def createImage(state: State) -> dict:
     variant = variant.model_dump()
     prompt = promptImage(variant)
     print(f" -> Creating the image number {state.number_generations}")
-    """
+    
     client = OpenAI()
     response = client.images.generate(
         model=GraphConfig().image,
@@ -81,6 +81,6 @@ def createImage(state: State) -> dict:
     file_path = os.path.join(dir_path, f"{state.number_generations}.png")
     with open(file_path, "wb") as f:
         f.write(image_bytes)
-    """
+    
     print(f" -> Image number {state.number_generations} created")
     return {"number_generations": state.number_generations+1}

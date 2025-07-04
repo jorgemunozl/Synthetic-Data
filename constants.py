@@ -4,7 +4,7 @@ from models import NodesVariant, EdgesVariant
 
 directoryOutput = "outputModel"
 
-NUM_IMAGES_TO_ADD = 2
+NUM_IMAGES_TO_ADD = 1
 
 NODE = [
   {"id": "n1", "type": "start", "label": "Inicio"},
