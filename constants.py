@@ -6,6 +6,7 @@ directoryOutput = "outputModel"
 
 NUM_IMAGES_TO_ADD = 1
 
+
 NODE = [
   {"id": "n1", "type": "start", "label": "Inicio"},
   {"id": "n2", "type": "decision", "label": "¿Quieres café?"},

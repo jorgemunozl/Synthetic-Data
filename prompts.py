@@ -1,7 +1,6 @@
-import json
 
 promptSystem = """You are FlowTopicJSONBot.
-1. First, choose one clear, concrete process or workflow topic
+
 2. Then, **output only** the flowchart’s JSON in this schema :
   "nodes": [
      "id": string, "type": "start" | "end" |
@@ -12,7 +11,6 @@ promptSystem = """You are FlowTopicJSONBot.
      "from": string, "to": string, "label": string ,
     …
   ]
-
 Instructions:
 1. **Identify Nodes**
   - For each distinct step or state in the description, create one node object.
@@ -39,15 +37,20 @@ Instructions:
 images from these, for that reason is quite necesary that you are making
 a precise and acurately flowcharts.
 """
-promptHuman = """Generate a simple but realistic flowchart using
-the follow structure {seed_value}, about run"""
+promptHuman = """Generate a flowchart about {topic} using
+the follow sstructure {seed_value}"""
+promptTopicSys = "User wants to generate a ton of flowcharts, give some interesting ideas, be concise, no more than 30 words"
+promptTopicHum = "Give me one topic for one flowchart"
 
+def prompValidator(variant):
+  prompt = f"This is what I want {variant},  give just a number between 0 and 1"
+  return prompt
 
 def promptImage(flowChartInfo):
     promptImage = f"""
     Draw a clean, professional flowchart representing
     the {flowChartInfo["name"]} workflow described below:
-    {json.dumps(flowChartInfo, indent=2, ensure_ascii=False)}
+    {flowChartInfo}
     For each object in nodes:
       If "type": "start" or "end", draw a circle labeled with "label".
       If "type": "decision", draw a diamond labeled with "label".
@@ -58,7 +61,6 @@ def promptImage(flowChartInfo):
     next to the arrow (e.g. “YES” or “NO”).
     Extra styling notes:
     All text in a clear, legible sans-serif font,
-    The background is white, don't put a title
     Uniform node sizing with padding around labels.
     Straight or gently curved lines; avoid overlap.
     with “YES” arrow going right or down-right, “NO” arrow going down or left.
@@ -67,5 +69,6 @@ def promptImage(flowChartInfo):
     Arrows connecting nodes with arrowheads.
     Produce the diagram at high resolution so all
     labels are crisp and easily readable.
+    Don't put a title on the image
     """
     return promptImage

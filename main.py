@@ -1,33 +1,27 @@
 import asyncio
 import json
-from nodes import generate_variants, createImage, route
+from nodes import generateVariants, createImage, generateTopic
 from state import State
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 
 async def main(run_first_time: bool):
     thread_id = "session-1"
-
     builder = StateGraph(State)
-    builder.add_node("generate_variants", generate_variants)
+    builder.add_node("generateVariants", generateVariants)
+    builder.add_node("validator", validator)
+    builder.add_node("tweaker", tweaker)
     builder.add_node("createImage", createImage)
-    builder.add_edge(START, "generate_variants")
-    builder.add_edge("generate_variants", "createImage")
-    builder.add_conditional_edges(
-        "createImage",
-        route,
-        {
-            "generate_variants": "generate_variants",
-            "__end__": END,
-        },
-    )
+    builder.add_node("generateTopic", generateTopic)
+    builder.add_edge(START, "generateTopic")
 
     if run_first_time:
         initial_dict = {
             "messages": [],
             "seed": "",
-            "number_actual": 0,
+            "actual_number": 0,
+            "topic": "",
             "number_generations": 0,
             "schemas_generations": [],
         }
@@ -52,14 +46,11 @@ async def main(run_first_time: bool):
         latest_state = snapshot.values
         num_image = latest_state["number_generations"]
         print("-> Actual number of generated schemas:", num_image)
-        list_of_dicts = [
-            item if isinstance(item, dict) else item.model_dump()
-            for item in result["schemas_generations"]
-        ]
+
         name = "outputModel/schemas_generations.json"
         with open(name, "w") as f:
-            json.dump(list_of_dicts, f, indent=2)
+            json.dump(result["schemas_generations"], f, indent=2)
 
 
 if __name__ == "__main__":
-    asyncio.run(main(False))
+    asyncio.run(main(True))
