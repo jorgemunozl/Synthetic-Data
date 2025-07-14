@@ -42,8 +42,9 @@ the follow sstructure {seed_value}"""
 promptTopicSys = "User wants to generate a ton of flowcharts, give some interesting ideas, be concise, no more than 30 words"
 promptTopicHum = "Give me one topic for one flowchart"
 
-def prompValidator(variant):
-  prompt = f"This is what I want {variant},  give just a number between 0 and 1"
+def prompValidator(variant,threshold):
+  prompt = f"""This is what I want {variant}, assign to the image a number between zero and one, if the score
+  is greater than {threshold} then just return that number, otherwise create a prompt for tweak the image. Just return those two anything else!"""
   return prompt
 
 def promptImage(flowChartInfo):
