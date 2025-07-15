@@ -11,5 +11,6 @@ dependencies = [
     "langchain-openai>=0.3.24",
     "langgraph>=0.4.8",
     "langgraph-checkpoint-sqlite>=2.0.10",
+    "matplotlib>=3.10.3",
     "pydantic>=2.11.7",
 ]

@@ -13,7 +13,11 @@ class NodeTypesEnum(str, Enum):
 class NodesVariant(BaseModel):
     id: str = Field(description="a")
     type: NodeTypesEnum = Field(description="")
-    label: str = Field(description="freedom")
+    text: str = Field(description="freedom")
+    x : int = Field(description="")
+    y : int = Field(description="")
+    width : int = Field(description="")
+    height : int = Field(description="")
 
 
 class ConditionOptionsEnum(str, Enum):
@@ -21,12 +25,20 @@ class ConditionOptionsEnum(str, Enum):
     NO = "NO"
 
 
+class sides(str,Enum):
+    bottom = "bottom"
+    top    = "top"
+    left   = "left"
+    right  = "right"
+
+
 class EdgesVariant(BaseModel):
     id: str = Field(description="")
     from_: str = Field(description="")
     to: str = Field(description="")
-    condition: Optional[ConditionOptionsEnum] = Field(description="")
-
+    label: Optional[ConditionOptionsEnum] = Field(description="")
+    fromSide : sides = Field(description="")
+    toSide : sides = Field(description="")
 
 class GeneratorVariantOutput(BaseModel):
     name: str = Field(description="")
