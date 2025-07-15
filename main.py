@@ -1,10 +1,9 @@
 import asyncio
 import json
-from nodes import generateVariants, createImage, generateTopic
+from nodes import generateVariants, createImage, generateTopic, tweaker, validator
 from state import State
 from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-
 
 async def main(run_first_time: bool):
     thread_id = "session-1"
@@ -24,6 +23,12 @@ async def main(run_first_time: bool):
             "topic": "",
             "number_generations": 0,
             "schemas_generations": [],
+            "pathToImage": "",           
+            "score": 0,
+            "threshold": 0.7,
+            "modification": "",
+            "recursionLimit": 2,
+            "actualRecursion":0
         }
     else:
         async with AsyncSqliteSaver.from_conn_string("checkpoint.sqlite") as saver:
@@ -44,13 +49,12 @@ async def main(run_first_time: bool):
             config={"configurable": {"thread_id": thread_id}}
         )
         latest_state = snapshot.values
-        num_image = latest_state["number_generations"]
+        num_image = latest_state["number_generations"]  
         print("-> Actual number of generated schemas:", num_image)
-
         name = "outputModel/schemas_generations.json"
         with open(name, "w") as f:
             json.dump(result["schemas_generations"], f, indent=2)
-
+        print(" -> Schemas saved!")
 
 if __name__ == "__main__":
-    asyncio.run(main(True))
+    asyncio.run(main(False))

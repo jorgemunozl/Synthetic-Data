@@ -1,18 +1,16 @@
 
-promptSystem = """You are FlowTopicJSONBot.
-
-2. Then, **output only** the flowchart’s JSON in this schema :
+promptSystem = """
+You are flowchart completer you are gonna to use this schema :
   "nodes": [
      "id": string, "type": "start" | "end" |
        "decision" | "task", "label": string ,
-    …
   ],
   "edges": [
      "from": string, "to": string, "label": string ,
-    …
+
   ]
 Instructions:
-1. **Identify Nodes**
+1. Identify Nodes
   - For each distinct step or state in the description, create one node object.
   - Assign `"id"` to a unique identifier (e.g. `"n1"`, `"n2"`, …).
    - Set `"type"` based on its role:
@@ -32,19 +30,19 @@ Instructions:
    - List edges in the sequence they occur or in
    a consistent grouping by source node.
    - Ensure all `id` values are unique and referenced correctly.
-
-4. Be precise because after you create the JSON we are gonna to create
-images from these, for that reason is quite necesary that you are making
-a precise and acurately flowcharts.
+Be precise with the logic and be simple, not more than ten nodes.
 """
 promptHuman = """Generate a flowchart about {topic} using
-the follow sstructure {seed_value}"""
-promptTopicSys = "User wants to generate a ton of flowcharts, give some interesting ideas, be concise, no more than 30 words"
+the follow structure {seed_value}"""
+
+promptTopicSys = "User wants to generate flowcharts and needs a topic, give one, be concise, no more than 30 words and no further explanations"
 promptTopicHum = "Give me one topic for one flowchart"
 
-def prompValidator(variant,threshold):
-  prompt = f"""This is what I want {variant}, assign to the image a number between zero and one, if the score
-  is greater than {threshold} then just return that number, otherwise create a prompt for tweak the image. Just return those two anything else!"""
+def promptValidator(variant,threshold):
+  prompt = f"""I generate a flowchart following the follow schema: {variant}; assign to the image a number between zero and one depending if satisfy the requirements, if the score
+  is greater than {threshold} then just return that number and "Any", otherwise create a prompt for modify it such that the image match with the schema . Just return those two anything else!
+  Example: 0.1 Modify the arrow from node n1 to n2 , 0.9 Any, don't use quotation marks.
+  """
   return prompt
 
 def promptImage(flowChartInfo):
@@ -70,6 +68,7 @@ def promptImage(flowChartInfo):
     Arrows connecting nodes with arrowheads.
     Produce the diagram at high resolution so all
     labels are crisp and easily readable.
-    Don't put a title on the image
+    Don't put a title on the image.
+    And the background is a white color
     """
     return promptImage

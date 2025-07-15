@@ -4,7 +4,7 @@ from typing_extensions import Literal
 from models import GeneratorVariantOutput
 from state import State
 from prompts import promptSystem, promptHuman, promptImage
-from prompts import promptTopicHum, promptTopicSys, prompValidator
+from prompts import promptTopicHum, promptTopicSys, promptValidator
 from openai import OpenAI
 import os
 from constants import directoryOutput, NUM_IMAGES_TO_ADD
@@ -13,6 +13,12 @@ from langgraph.types import Command
 import base64
 import uuid
 import re
+
+def create_file(path):
+    client = OpenAI()
+    with open(path, "rb") as f:
+        response = client.files.create(file=f, purpose="vision")
+    return response.id
 
 def parse_score_and_text(response: str):
     pattern = r'^\s*(0(?:\.\d+)?|1(?:\.0+)?)\s+(.*)$'
@@ -47,7 +53,7 @@ async def generateVariants(state: State) -> Command[Literal["createImage"]]:
     response = await chain.ainvoke(
         {"seed_value": state.seed, "topic": state.topic}
     )
-    print(f""" -> Creating the schema number {state.number_generations} a
+    print(f""" -> Creating the schema number {state.number_generations}
     with topic : {state.topic}""")
     response = GeneratorVariantOutput.model_validate(response)
     output_model: GeneratorVariantOutput = response
@@ -57,13 +63,15 @@ async def generateVariants(state: State) -> Command[Literal["createImage"]]:
     updated = list(state.schemas_generations)
     updated.append(my_dict)
     print(f" -> Schema number {state.number_generations} created!")
+    #print(updated)
     return Command(update={"schemas_generations": updated}, goto="createImage")
 
 
-def createImage(state: State) -> Command[Literal["generateTopic", "__end__"]]:
-    variant = state.schemas_generations[state.number_generations]
+def createImage(state: State) -> Command[Literal["generateTopic", "validator"]]:
+    variant = state.schemas_generations[state.number_generations]    
+    id = variant["id"]
+    print(f" -> Creating the image number --{state.number_generations}-- about --{state.topic}--")
     prompt = promptImage(variant)
-    print(f" -> Creating the image number {state.number_generations}")
     client = OpenAI()
     response = client.images.generate(
         model=GraphConfig().image,
@@ -73,99 +81,70 @@ def createImage(state: State) -> Command[Literal["generateTopic", "__end__"]]:
     image_bytes = base64.b64decode(image_base64)
     dir_path = directoryOutput
     os.makedirs(dir_path, exist_ok=True)
-    file_path = os.path.join(dir_path, f"{state.number_generations}.png")
+    file_path = os.path.join(dir_path, f"{id}.png")
     with open(file_path, "wb") as f:
         f.write(image_bytes)
-    print(f" -> Image number {state.number_generations} created")
-    stoptIteration = state.actual_number + NUM_IMAGES_TO_ADD
-    if (state.number_generations + 1 >= stoptIteration):
-        goto = "__end__"
-    else:
-        goto = "generateTopic"
-    return Command(update={"number_generations": state.number_generations+1},
-                   goto=goto)
+    with open("original.png", "wb") as f:
+        f.write(image_bytes)
+    print(f" -> Image with: {id} created")
+    return Command(update={"number_generations": state.number_generations+1,
+                          "pathToImage":file_path,"actualRecursion":0},
+                   goto="validator")
 
 
-def create_file(path):
-    """
-    Uploads a file to OpenAI and returns the file_id.
-    """
-    client = OpenAI()
-    with open(path, "rb") as f:
-        response = client.files.create(file=f, purpose="vision")
-    return response.id
-
-
-def tweaker(state: State):
-    client = OpenAI()
-
-    fileId = create_file(state.pathToImage)
-    maskId = create_file("mask.png")
-
-    response = client.responses.create(
-        model="gpt-4o",
-        input=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "input_text",
-                        "text": state.modification,
-                    },
-                    {
-                        "type": "input_image",
-                        "file_id": fileId,
-                    }
-                ],
-            },
-        ],
-        tools=[
-            {
-                "type": "image_generation",
-                "quality": "high",
-                "input_image_mask": {
-                    "file_id": maskId,
-                },
-            },
-        ],
-    )
-
-    image_data = [
-        output.result
-        for output in response.output
-        if output.type == "image_generation_call"
-    ]
-
-    if image_data:
-        image_base64 = image_data[0]
-        with open("modification.png", "wb") as f:
-            f.write(base64.b64decode(image_base64))
-
-def validator(state: State) -> Command[Literal["tweaker", "generateTopic"]]:
+def validator(state: State) -> Command[Literal["tweaker", "generateTopic","__end__"]]:
     with open(state.pathToImage, "rb") as f:
         b64 = base64.b64encode(f.read()).decode()
     uri = f"data:image/png;base64,{b64}"
-    variant = state.schemas_generations[state.number_generations]
+    variant = state.schemas_generations[state.number_generations-1]
     client = OpenAI()
+    print(f" -> Watching flowchart about --{state.topic}--")
     response = client.responses.create(
-        model="gpt-4-vision-preview",
+        model="gpt-4.1-mini",
         input=[
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": prompValidator(variant)},
+                    {"type": "input_text", "text": promptValidator(variant,state.threshold)},
                     {
                         "type": "input_image",
-                        "image_url": {"url": uri},
+                        "image_url": uri,
                     },
                 ],
             },
         ],
     )
-    reply = response.choices[0].message.content
+    reply = response.output_text
+    print(" -> Raw response to be parse ", reply)
     score, prompt = parse_score_and_text(reply)
-    if score >= state.threshold:
-        goto = "generateTopic"
-    else:
+    print(f"SCORE -> {score}")
+    print(f"FEEDBACK -> {prompt}")
+    stoptIteration = state.actual_number + NUM_IMAGES_TO_ADD
+    if (score >= state.threshold and state.number_generations < stoptIteration):
+        goto = "generateTopic"    
+    if (score <= state.threshold and state.actualRecursion != state.recursionLimit):
         goto = "tweaker"
+    else:
+        goto = "__end__"
+    print(" -> Modified Numbers : ", state.actualRecursion)
+    print(f" -> Going to  : {goto}")
     return Command(update={"modification": prompt}, goto=goto)
+
+
+def tweaker(state: State) -> Command[Literal["validator"]]:
+    client = OpenAI()
+    print(" -> Creating modified image ")
+    result = client.images.edit(
+    quality="high",
+    model="gpt-image-1",
+    image=[
+        open(state.pathToImage, "rb")
+    ],
+    prompt=state.modification
+    )
+    image_base64 = result.data[0].b64_json
+    image_bytes = base64.b64decode(image_base64)
+    with open(state.pathToImage, "wb") as f:
+        f.write(image_bytes)
+    print(" -> Image modified created returning to validator")
+    return Command(update={"actualRecursion":state.actualRecursion+1},goto="validator")

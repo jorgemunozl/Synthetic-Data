@@ -42,6 +42,7 @@ class State(BaseModel):
     pathToImage: str = Field(description="path to image to review")
     score: float = Field(default=0.0, description="score for the image")
     threshold: float = Field(default=0.0,
-                             description="If it is more than 0.9 then it's accepted")
+                             description="If it is more than it then it's accepted")
     modification: str = Field(default="",description="what is gonna to be modified")
     recursionLimit: int = Field(default=2,description="How much times how maximun a image can be improved")
+    actualRecursion: int = Field(default=0)
