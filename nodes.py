@@ -13,11 +13,12 @@ from langgraph.types import Command
 import base64
 import uuid
 import re
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.patches import FancyArrowPatch
 import numpy as np
-
 
 
 def create_file(path):
@@ -66,7 +67,6 @@ async def generateVariants(state: State) -> Command[Literal["createImage"]]:
     my_dict = output_model.model_dump()
     my_id = str(uuid.uuid4())
     my_dict["id"] = my_id
-    print(my_dict)
     updated = list(state.schemas_generations)
     updated.append(my_dict)
     print(f" -> Schema number {state.number_generations} created!")

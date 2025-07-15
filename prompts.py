@@ -23,7 +23,9 @@ Instructions:
      - `"task"` for any other action or process.
    - Use `"text"` for the exact text shown in the flowchart. If it is long put a \n in the middle of the text.
    - Use `"x"` and `"y"` to position the figure in the xy plane. We read the flowchart from top to bottom, so `"y"` should
-   to decrease, use numbers similar like the example that user is gonna to give you.
+   to decrease, use numbers similar like the example that user is gonna to give you. 
+   Is important to modify the `"x"` for better aesthetics, the difference of `"x"` between two nodes should be greather than 100.
+
    - Use `"width"` and `"height"` to define the size of the rectangle or diamond or circle where text is gonna to be put,
    so if is a long text increase both, for better stetics.
 2. Identify Edges
@@ -42,8 +44,7 @@ Instructions:
    - Ensure all `id` values are unique and referenced correctly.
 Be precise with the logic and be simple, not more than ten nodes.
 """
-promptHuman = """Generate a flowchart about {topic} using
-the follow structure {seed_value}"""
+promptHuman = """Generate a flowchart about {topic} use similar numbers of the follow example {seed_value}"""
 
 promptTopicSys = "User wants to generate flowcharts and needs a topic, give one, be concise, no more than 30 words and no further explanations"
 promptTopicHum = "Give me one topic for one flowchart"
