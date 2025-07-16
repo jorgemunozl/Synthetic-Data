@@ -10,6 +10,16 @@ import base64
 import uuid
 
 
+def parse_score_and_text(response: str):
+    pattern = r'^\s*(0(?:\.\d+)?|1(?:\.0+)?)\s+(.*)$'
+    m = re.match(pattern, response.strip())
+    if not m:
+        raise ValueError("Response doesn't match the expected format")
+    score = float(m.group(1))
+    text = m.group(2).strip()
+    return score, text
+
+
 async def plannerNode(state: State) -> Command[Literal["generator"]]:
     llmTopic = ChatOpenAI(model=GraphConfig().modelBase,
                           temperature=GraphConfig().temperature)
@@ -48,7 +58,7 @@ async def reflector(state: State) -> Command[Literal["generator", "planner"]]:
     ])
     chain = prompt | llm
     response = await chain.ainvoke({"target": state.generatorOutput})
-    score, feedback = response
+    score, feedback = parse_score_and_text(response.content)
     if (score >= GraphConfig().threshold):
         if condition:
             difficulty+=1
