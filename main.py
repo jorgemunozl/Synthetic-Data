@@ -1,19 +1,19 @@
 import asyncio
 import json
-from nodes import generateVariants, createImage, generateTopic, tweaker, validator
+from nodes import planner, generator, reflector, evaluation_sheet
 from state import State
 from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
+
 async def main(run_first_time: bool):
     thread_id = "session-1"
     builder = StateGraph(State)
-    builder.add_node("generateVariants", generateVariants)
-    builder.add_node("validator", validator)
-    builder.add_node("tweaker", tweaker)
-    builder.add_node("createImage", createImage)
-    builder.add_node("generateTopic", generateTopic)
-    builder.add_edge(START, "generateTopic")
+    builder.add_node("planner", planner)
+    builder.add_node("evaluation-sheet", evaluation_sheet)
+    builder.add_node("generator", generator)
+    builder.add_node("reflector", reflector)
+    builder.add_edge(START, "planner")
 
     if run_first_time:
         initial_dict = {

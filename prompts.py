@@ -1,3 +1,21 @@
+class Prompt():
+    System: str
+    Human: str
+
+
+planner = Prompt()
+generator = Prompt()
+reflection = Prompt()
+
+planner.System = "asd"
+planner.Human = ""
+
+generator.System = ""
+generator.Human = ""
+
+reflection.System = ""
+reflection.Human = ""
+
 
 promptSystem = """
 You are gonna to create a flowchart you are gonna to use this schema :
@@ -45,9 +63,13 @@ Instructions:
 Be precise with the logic and be simple, not more than ten nodes.
 """
 promptHuman = """Generate a flowchart about {topic} use similar numbers of the follow example {seed_value}"""
+promptPlannerSystem = """
+You are gonna to create a prompt to generate a flowchart about a proccess on a general topic that user is gonna to give.
+The flowchart is gonna to be created using Mermaid so ask for mermaid.
+Exist three level of difficulty: easy ,medium and hard. A easy flowchart is a medium and the last is ...
+"""
+promptPlannerHumman = "Give me a Mermaid flowchart about {topic} "
 
-promptTopicSys = "User wants to generate flowcharts and needs a topic, give one, be concise, no more than 30 words and no further explanations"
-promptTopicHum = "Give me one topic for one flowchart"
 
 def promptValidator(variant,threshold):
   prompt = f"""I generate a flowchart following the follow schema: {variant}; assign to the image a number between zero and one depending if the arrows are nice or not, if the score

@@ -12,5 +12,7 @@ dependencies = [
     "langgraph>=0.4.8",
     "langgraph-checkpoint-sqlite>=2.0.10",
     "matplotlib>=3.10.3",
+    "mermaid-py>=0.8.0",
     "pydantic>=2.11.7",
+    "python-to-mermaid>=0.6.0",
 ]
