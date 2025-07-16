@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from constants import topics
 
 
+
 class GraphConfig(BaseModel):
     modelBase: Annotated[str, {}] = Field(
         default="gpt-4o",
@@ -26,5 +27,9 @@ class GraphConfig(BaseModel):
     )
     topics: Annotated[list, {}] = Field(
         default=topics,
+        description="Model topics for the flowcharts"
+    )
+    recursionLimit: Annotated[int, {}] = Field(
+        default=2,
         description="Model topics for the flowcharts"
     )

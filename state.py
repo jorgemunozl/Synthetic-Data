@@ -19,6 +19,10 @@ class State(BaseModel):
                                description="Current generation index")
     topic: str = Field(default="",
                        description="Current topic")
+    plannerOutput: str = Field()
+    generatorOutput: str = Field()
+    difficulty: str = Field()
+    recursionState: int = Field()
     schemas_generations: list[dict] = Field(
         default_factory=list,
         description="List of dicts id-mermaid",

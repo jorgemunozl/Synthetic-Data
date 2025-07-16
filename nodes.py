@@ -2,57 +2,54 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from typing_extensions import Literal
 from state import State
-from prompts import promptSystem, promptHuman
-#from prompts import promptTopicHum, promptTopicSys, promptValidator
+from prompts import planner, generator, reflection
 from openai import OpenAI
-from constants import directoryOutput
 from config import GraphConfig
 from langgraph.types import Command
 import base64
 import uuid
-from prompts import planner
-
-print(planner.System)
 
 
-async def planner(state: State) -> Command[Literal["generator"]]:
+async def plannerNode(state: State) -> Command[Literal["generator"]]:
     llmTopic = ChatOpenAI(model=GraphConfig().modelBase,
                           temperature=GraphConfig().temperature)
     prompt = ChatPromptTemplate.from_messages([
-        ("system", promptTopicSys),
-        ("human", promptTopicHum)
+        ("system", planner.System),
+        ("human", planner.Human)
     ])
     chain = prompt | llmTopic
-    response = await chain.ainvoke({})
-    return Command(update={"topic": response.content}, goto="generator")
+    response = await chain.ainvoke({"difficulty": state.difficulty,
+                                    "topic": state.topic})
+    return Command(update={"plannerOutput": response.content}, goto="generator")
 
 
-async def generator(state: State) -> Command[Literal["reflector"]]:
+async def generatorNode(state: State) -> Command[Literal["reflector"]]:
     llm = ChatOpenAI(model=GraphConfig().modelBase,
                      temperature=GraphConfig().temperature)
     prompt = ChatPromptTemplate.from_messages([
-        ("system", promptSystem),
-        ("human", promptHuman)
+        ("system", generator.System),
+        ("human", generator.Human)
     ])
     chain = prompt | llm
-    print(f""" -> Creating the schema number {state.number_generations}
-          with topic : {state.topic}""")
-    response = await chain.ainvoke(
-        {"seed_value": state.seed, "topic": state.topic}
-    )
-    response = {"flowchart": response}
-    my_id = str(uuid.uuid4())
-    response["id"] = my_id
-    updated = list(state.schemas_generations)
-    updated.append(response)
-    print(f" -> Schema number {state.number_generations} created!")
-    return Command(update={"schemas_generations": updated}, goto="reflector")
+    response = await chain.ainvoke({"indications": state.plannerOutput})
+    # response = {"flowchart": response.content}
+    # response["id"] = str(uuid.uuid4())
+    # updated = (list(state.schemas_generations)).append(response)
+    return Command(update={"generatorOutput": response.content},
+                   goto="reflector")
 
 
-def reflector(state: State) -> Command[Literal["generator", "planner"]]:
-    variant = state.schemas_generations[-1]
-    
-    if (score>=THRESHOLD):
+async def reflector(state: State) -> Command[Literal["generator", "planner"]]:
+    llm = ChatOpenAI(model=GraphConfig().modelReasoning,
+                     temperature=GraphConfig().temperature)
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", reflection.System),
+        ("human", generator.Human)
+    ])
+    chain = prompt | llm
+    response = await chain.ainvoke({"target": state.generatorOutput})
+    score, feedback = response
+    if (score >= GraphConfig().threshold):
         if condition:
             difficulty+=1
         goto = "planner"

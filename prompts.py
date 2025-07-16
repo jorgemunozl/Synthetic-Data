@@ -1,21 +1,36 @@
-class Prompt():
+from dataclasses import dataclass
+
+
+@dataclass
+class Prompt:
     System: str
     Human: str
 
 
-planner = Prompt()
-generator = Prompt()
-reflection = Prompt()
-
-planner.System = "asd"
-planner.Human = ""
-
-generator.System = ""
-generator.Human = ""
-
-reflection.System = ""
-reflection.Human = ""
-
+planner = Prompt(
+   System="""
+   Lorem Ipsum
+   """.strip(),
+   Human="""
+  Lorem Ipsum
+  """.strip()
+)
+generator = Prompt(
+   System="""
+   Lorem Ipsum
+   """.strip(),
+   Human="""
+  Lorem Ipsum
+  """.strip()
+)
+reflection = Prompt(
+   System="""
+   Lorem Ipsum
+   """.strip(),
+   Human="""
+  Lorem Ipsum
+  """.strip()
+)
 
 promptSystem = """
 You are gonna to create a flowchart you are gonna to use this schema :
