@@ -14,11 +14,13 @@ import base64
 import uuid
 import re
 
+
 def create_file(path):
     client = OpenAI()
     with open(path, "rb") as f:
         response = client.files.create(file=f, purpose="vision")
     return response.id
+
 
 def parse_score_and_text(response: str):
     pattern = r'^\s*(0(?:\.\d+)?|1(?:\.0+)?)\s+(.*)$'
@@ -28,6 +30,7 @@ def parse_score_and_text(response: str):
     score = float(m.group(1))
     text = m.group(2).strip()
     return score, text
+
 
 async def generateTopic(state: State) -> Command[Literal["generateVariants"]]:
     llmTopic = ChatOpenAI(model=GraphConfig().base,
@@ -63,23 +66,28 @@ async def generateVariants(state: State) -> Command[Literal["createImage"]]:
     updated = list(state.schemas_generations)
     updated.append(my_dict)
     print(f" -> Schema number {state.number_generations} created!")
-    #print(updated)
     return Command(update={"schemas_generations": updated}, goto="createImage")
 
 
-def createImage(state: State) -> Command[Literal["generateTopic", "validator"]]:
-    variant = state.schemas_generations[state.number_generations]    
+def createImage(state: State) -> Command[Literal["generateTopic",
+                                                 "validator"]]:
+    variant = state.schemas_generations[state.number_generations]
     id = variant["id"]
-    print(f" -> Creating the image number --{state.number_generations}-- about --{state.topic}--")
+    print(f""" -> Creating the image number
+          --{state.number_generations}-- about --{state.topic}--""")
     prompt = promptImage(variant)
     client = OpenAI()
     response = client.images.generate(
         model=GraphConfig().image,
         prompt=prompt,
+        response_format="b64_json"
         )
-    image_base64 = response.data[0].b64_json
-    image_bytes = base64.b64decode(image_base64)
-    dir_path = directoryOutput
+    if not response.data:
+        print("No image; Response:", response)
+    else:
+        image_base64 = response.data[0].b64_json
+        image_bytes = base64.b64decode(image_base64)
+        dir_path = directoryOutput
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, f"{id}.png")
     with open(file_path, "wb") as f:
@@ -87,12 +95,14 @@ def createImage(state: State) -> Command[Literal["generateTopic", "validator"]]:
     with open("original.png", "wb") as f:
         f.write(image_bytes)
     print(f" -> Image with: {id} created")
-    return Command(update={"number_generations": state.number_generations+1,
-                          "pathToImage":file_path,"actualRecursion":0},
-                   goto="validator")
+    return Command(
+        update={"number_generations": state.number_generations+1,
+                "pathToImage": file_path, "actualRecursion": 0},
+        goto="validator"
+                )
 
-
-def validator(state: State) -> Command[Literal["tweaker", "generateTopic","__end__"]]:
+def validator(state: State) -> Command[Literal["tweaker",
+                                               "generateTopic", "__end__"]]:
     with open(state.pathToImage, "rb") as f:
         b64 = base64.b64encode(f.read()).decode()
     uri = f"data:image/png;base64,{b64}"
@@ -115,13 +125,12 @@ def validator(state: State) -> Command[Literal["tweaker", "generateTopic","__end
         ],
     )
     reply = response.output_text
-    print(" -> Raw response to be parse ", reply)
     score, prompt = parse_score_and_text(reply)
     print(f"SCORE -> {score}")
     print(f"FEEDBACK -> {prompt}")
     stoptIteration = state.actual_number + NUM_IMAGES_TO_ADD
     if (score >= state.threshold and state.number_generations < stoptIteration):
-        goto = "generateTopic"    
+        goto = "generateTopic"
     if (score <= state.threshold and state.actualRecursion != state.recursionLimit):
         goto = "tweaker"
     else:
@@ -135,16 +144,16 @@ def tweaker(state: State) -> Command[Literal["validator"]]:
     client = OpenAI()
     print(" -> Creating modified image ")
     result = client.images.edit(
-    quality="high",
-    model="gpt-image-1",
-    image=[
-        open(state.pathToImage, "rb")
-    ],
-    prompt=state.modification
+        quality="high",
+        model="gpt-image-1",
+        image=[
+            open(state.pathToImage, "rb")
+        ],
+        prompt=state.modification
     )
     image_base64 = result.data[0].b64_json
     image_bytes = base64.b64decode(image_base64)
     with open(state.pathToImage, "wb") as f:
         f.write(image_bytes)
     print(" -> Image modified created returning to validator")
-    return Command(update={"actualRecursion":state.actualRecursion+1},goto="validator")
+    return Command(update={"actualRecursion":state.actualRecursion+1}, goto="validator")
