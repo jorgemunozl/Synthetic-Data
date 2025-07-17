@@ -1,7 +1,8 @@
 from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
-from typing import Optional, Annotated
+from typing import Annotated
 from pydantic import BaseModel, Field
+from constants import topics, difficulty
 
 
 class State(BaseModel):
@@ -17,12 +18,12 @@ class State(BaseModel):
                                     description="Total number of generations")
     actual_number: int = Field(default=0,
                                description="Current generation index")
-    topic: str = Field(default="",
-                       description="Current topic")
-    plannerOutput: str = Field()
-    generatorOutput: str = Field()
-    difficulty: str = Field()
-    recursionState: int = Field()
+    topic: list = Field(default=topics,
+                        description="Current topic")
+    plannerOutput: str = Field(default="")
+    generatorOutput: str = Field(default="")
+    difficulty: list = Field(default=difficulty)
+    recursion: int = Field(default=0)
     schemas_generations: list[dict] = Field(
         default_factory=list,
         description="List of dicts id-mermaid",

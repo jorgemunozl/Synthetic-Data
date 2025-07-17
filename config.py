@@ -22,7 +22,7 @@ class GraphConfig(BaseModel):
         description="Threshold that reflector is gonna to use"
     )
     difficultyStep: Annotated[int, {}] = Field(
-        default=3,
+        default=1,
         description="Number of flowcharts to jump of difficulty"
     )
     topics: Annotated[list, {}] = Field(

@@ -8,6 +8,9 @@ from config import GraphConfig
 from langgraph.types import Command
 import base64
 import uuid
+import re
+import subprocess
+from constants import directory 
 
 
 def parse_score_and_text(response: str):
@@ -30,7 +33,8 @@ async def plannerNode(state: State) -> Command[Literal["generator"]]:
     chain = prompt | llmTopic
     response = await chain.ainvoke({"difficulty": state.difficulty,
                                     "topic": state.topic})
-    return Command(update={"plannerOutput": response.content}, goto="generator")
+    return Command(update={"plannerOutput": response.content,"recursion":0},
+                   goto="generator")
 
 
 async def generatorNode(state: State) -> Command[Literal["reflector"]]:
@@ -49,7 +53,7 @@ async def generatorNode(state: State) -> Command[Literal["reflector"]]:
                    goto="reflector")
 
 
-async def reflector(state: State) -> Command[Literal["generator", "planner"]]:
+async def reflector(state: State) -> Command[Literal["generator", "router"]]:
     llm = ChatOpenAI(model=GraphConfig().modelReasoning,
                      temperature=GraphConfig().temperature)
     prompt = ChatPromptTemplate.from_messages([
@@ -59,70 +63,36 @@ async def reflector(state: State) -> Command[Literal["generator", "planner"]]:
     chain = prompt | llm
     response = await chain.ainvoke({"target": state.generatorOutput})
     score, feedback = parse_score_and_text(response.content)
-    if (score >= GraphConfig().threshold):
-        if condition:
-            difficulty+=1
-        goto = "planner"
-        goto = "imageGenerator"
-    else:
+    if (score < GraphConfig().threshold and state.recursion < GraphConfig().recursionLimit):
+        update = {"plannerOutput": feedback, "recursion": state.recursion+1}
         goto = "generator"
-    return Command(update={"number_generations": state.number_generations+1,
-                          "pathToImage":file_path,"actualRecursion":0},
-                   goto=goto)
-
-
-def validator(state: State) -> Command[Literal["tweaker", "generateTopic","__end__"]]:
-    with open(state.pathToImage, "rb") as f:
-        b64 = base64.b64encode(f.read()).decode()
-    uri = f"data:image/png;base64,{b64}"
-    variant = state.schemas_generations[state.number_generations-1]
-    client = OpenAI()
-    print(f" -> Watching flowchart about --{state.topic}--")
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "input_text", "text": promptValidator(variant,state.threshold)},
-                    {
-                        "type": "input_image",
-                        "image_url": uri,
-                    },
-                ],
-            },
-        ],
-    )
-    reply = response.output_text
-    score, prompt = parse_score_and_text(reply)
-    print(f"SCORE -> {score}")
-    print(f"FEEDBACK -> {prompt}")
-    stoptIteration = state.actual_number + NUM_IMAGES_TO_ADD
-    if (score >= state.threshold and state.number_generations < stoptIteration):
-        goto = "generateTopic"  
-    if (score <= state.threshold and state.actualRecursion != state.recursionLimit):
-        goto = "tweaker"
     else:
-        goto = "__end__"
-    print(" -> Modified Numbers : ", state.actualRecursion)
-    print(f" -> Going to  : {goto}")
-    return Command(update={"modification": prompt}, goto=goto)
+        variant = {"id": str(uuid.uuid4()), "content": state.generatorOutput}
+        update = {"schemas_generations":
+                  state.schemas_generations.append(variant)}
+        goto = "router"
+    return Command(update=update, goto=goto)
 
 
-def tweaker(state: State) -> Command[Literal["validator"]]:
-    client = OpenAI()
-    print(" -> Creating modified image ")
-    result = client.images.edit(
-    quality="high",
-    model="gpt-image-1",
-    image=[
-        open(state.pathToImage, "rb")
-    ],
-    prompt=state.modification
-    )
-    image_base64 = result.data[0].b64_json
-    image_bytes = base64.b64decode(image_base64)
-    with open(state.pathToImage, "wb") as f:
-        f.write(image_bytes)
-    print(" -> Image modified created returning to validator")
-    return Command(update={"actualRecursion":state.actualRecursion+2},goto="validator")
+async def router(state: State) -> Command[Literal["planner", "image"]]:
+    max = GraphConfig().difficultyStep*len(GraphConfig().topics)*3
+    if (state.actual_number == max):
+        goto = "image"
+    else:
+        goto = "planner"
+    return Command(goto=goto)
+
+
+async def image(state: State) -> Command[Literal["__end__"]]:
+    for flow in state.schemas_generations:
+        name = directory+flow["id"]+".mmd"
+        with open(name, "w") as f:
+            f.write(flow["content"])
+        subprocess.run([
+            "mmdc",
+            "-i", name,
+            "-o", name.replace(".mmd", ".png")
+        ], check=True)
+        # Or curl -X POST https://kroki.io/mermaid/png -H
+        #  "Content-Type: text/plain" -d 'graph TD; A-->B;' -o output.png
+    return Command(goto="__end__")

@@ -1,6 +1,6 @@
 import asyncio
 import json
-from nodes import planner, generator, reflector, evaluation_sheet
+from nodes import plannerNode, generatorNode, reflector, eval_sheet, images, router
 from state import State
 from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
@@ -9,10 +9,12 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 async def main(run_first_time: bool):
     thread_id = "session-1"
     builder = StateGraph(State)
-    builder.add_node("planner", planner)
+    builder.add_node("planner", plannerNode)
     builder.add_node("evaluation-sheet", evaluation_sheet)
-    builder.add_node("generator", generator)
+    builder.add_node("generator", generatorNode)
     builder.add_node("reflector", reflector)
+    builder.add_node("router", router)
+    builder.add_node("images", images)
     builder.add_edge(START, "planner")
 
     if run_first_time:
@@ -23,12 +25,12 @@ async def main(run_first_time: bool):
             "topic": "",
             "number_generations": 0,
             "schemas_generations": [],
-            "pathToImage": "",           
+            "pathToImage": "",
             "score": 0,
             "threshold": 0.7,
             "modification": "",
             "recursionLimit": 2,
-            "actualRecursion":0
+            "actualRecursion": 0
         }
     else:
         async with AsyncSqliteSaver.from_conn_string("checkpoint.sqlite") as saver:
