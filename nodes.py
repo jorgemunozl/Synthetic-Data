@@ -7,27 +7,41 @@ from config import GraphConfig
 from langgraph.types import Command
 import uuid
 import re
-# import subprocess
 from constants import directory
+from langchain_core.pydantic_v1 import BaseModel, Field, validator
 
 dif = ["easy", "medium", "hard"]
 
 
-def parse_score_and_text(response: str):
-    pattern = r'^\s*(.*?)\s+(0(?:\.\d+)?|1(?:\.0+)?)\s*$'
-    m = re.match(pattern, response.strip())
-    if not m:
-        raise ValueError("Response doesn't match the expected format")
-    text = m.group(1).strip()
-    score = float(m.group(2))
-    return score, text
-
-
-async def plannerNode(state: State) -> Command[Literal["generator"]]:
-    print("\n----- plannerNode -----")
-    print("State:")
+def print_state(state: State, node_name: str):
+    print(f"\n----- {node_name.upper()} -----")
+    print("--- STATES ---")
     for k, v in vars(state).items():
-        print(f"  {k}: {v}")
+        if k in ("plannerOutput", "evalSheet", "generatorOutput"):
+            val = str(v)[:20] + ("..." if v and len(str(v)) > 20 else "")
+            print(f"  {k}: {val}")
+        elif k == "schemas_generations":
+            continue
+        else:
+            print(f"  {k}: {v}")
+    print("--- END STATES ---\n")
+
+
+class ReflectionOutput(BaseModel):
+    feedback: str = Field(description="Detailed feedback about the flowchart")
+    score: float = Field(
+        description="Score from 0.0 to 1.0 indicating quality of the flowchart"
+    )
+    
+    @validator("score")
+    def validate_score(cls, v):
+        if v < 0.0 or v > 1.0:
+            raise ValueError("Score must be between 0.0 and 1.0")
+        return v
+
+
+async def plannerNode(state: State) -> Command[Literal["evalSheet"]]:
+    print_state(state, "PLANNER")
     llm = ChatOpenAI(model=GraphConfig().modelBase,
                      temperature=GraphConfig().temperature)
     prompt = ChatPromptTemplate.from_messages([
@@ -35,19 +49,17 @@ async def plannerNode(state: State) -> Command[Literal["generator"]]:
         ("human", planner.Human)
     ])
     chain = prompt | llm
-    response = await chain.ainvoke({"difficulty": dif[state.difficultyIndex],
-                                    "topic": GraphConfig().topics[state.topicIndex]
-                                    })
-    print(f"[plannerNode] plannerOutput: {response.content}")
+    response = await chain.ainvoke({
+        "difficulty": dif[state.difficultyIndex],
+        "topic": GraphConfig().topics[state.topicIndex]
+    })
+    print(f"--- PLANNER OUTPUT ---\n{response.content}")
     return Command(update={"plannerOutput": response.content, "recursion": 0},
-                   goto="generator")
+                   goto="evalSheet")
 
 
 async def evalSheetNode(state: State) -> Command[Literal["generator"]]:
-    print("\n----- evalSheetNode -----")
-    print("State:")
-    for k, v in vars(state).items():
-        print(f"  {k}: {v}")
+    print_state(state, "EVALSHEET")
     llm = ChatOpenAI(model=GraphConfig().modelBase,
                      temperature=GraphConfig().temperature)
     prompt = ChatPromptTemplate.from_messages([
@@ -55,17 +67,13 @@ async def evalSheetNode(state: State) -> Command[Literal["generator"]]:
         ("human", evalSheet.Human)
     ])
     chain = prompt | llm
-    response = await chain.ainvoke({"prompt": state.generatorOutput})
-    print("-> Initial State: ", state)
-    print(f"[evalSheetNode] evalSheet: {response.content}")
+    response = await chain.ainvoke({"prompt": state.plannerOutput})
+    print(f"--- EVALSHEET OUTPUT ---\n{response.content}")
     return Command(update={"evalSheet": response.content}, goto="generator")
 
 
 async def generatorNode(state: State) -> Command[Literal["reflector"]]:
-    print("\n----- generatorNode -----")
-    print("State:")
-    for k, v in vars(state).items():
-        print(f"  {k}: {v}")
+    print_state(state, "GENERATOR")
     llm = ChatOpenAI(model=GraphConfig().modelBase,
                      temperature=GraphConfig().temperature)
     prompt = ChatPromptTemplate.from_messages([
@@ -74,51 +82,50 @@ async def generatorNode(state: State) -> Command[Literal["reflector"]]:
     ])
     chain = prompt | llm
     response = await chain.ainvoke({"indications": state.plannerOutput})
-    print(f"[generatorNode] generatorOutput: {response.content}")
+    print(f"--- GENERATOR OUTPUT ---\n{response.content}")
     return Command(update={"generatorOutput": response.content},
                    goto="reflector")
 
 
 async def reflector(state: State) -> Command[Literal["generator", "router"]]:
-    print("\n----- reflector -----")
-    print("State:")
-    for k, v in vars(state).items():
-        print(f"  {k}: {v}")
-    llm = ChatOpenAI(model=GraphConfig().modelReasoning,
-                     temperature=GraphConfig().temperature)
+    print_state(state, "REFLECTOR")
+    llm = ChatOpenAI(
+        model=GraphConfig().modelReasoning
+    ).with_structured_output(ReflectionOutput)
     prompt = ChatPromptTemplate.from_messages([
         ("system", reflection.System),
         ("human", reflection.Human)
     ])
     chain = prompt | llm
-    response = await chain.ainvoke({"sheet": state.evalSheet,
-                                   "target": state.generatorOutput})
-    score, feedback = parse_score_and_text(response.content)
-    print(f"[reflector] score: {score}, feedback: {feedback}")
-    if (score < GraphConfig().threshold and state.recursion < GraphConfig().recursionLimit):
+    result = await chain.ainvoke({"sheet": state.evalSheet,
+                                 "target": state.generatorOutput})
+    
+    score = result.score
+    feedback = result.feedback
+    print(f"--- REFLECTOR SCORE: {score}, FEEDBACK: ---\n{feedback}")
+    if (
+        score < GraphConfig().threshold
+        and state.recursion < GraphConfig().recursionLimit
+    ):
         feedback = state.generatorOutput + "Modifications" + feedback
         update = {"plannerOutput": feedback, "recursion": state.recursion+1}
         goto = "generator"
     else:
         newSchemas = list(state.schemas_generations)
         variant = {"id": str(uuid.uuid4()), "content": state.generatorOutput}
-        newSchemas = newSchemas.append(variant)
-        update = {"schemas_generations":
-                  newSchemas,
-                  "actual_number": state.actual_number+1}
+        newSchemas.append(variant)
+        update = {"actual_number": state.actual_number+1,
+                  "schemas_generations": newSchemas}
         goto = "router"
-    print(f"[reflector] update: {update}, goto: {goto}")
     return Command(update=update, goto=goto)
 
 
 async def router(state: State) -> Command[Literal["planner", "image"]]:
-    print("\n----- router -----")
-    print("State:")
-    for k, v in vars(state).items():
-        print(f"  {k}: {v}")
+    print_state(state, "ROUTER")
     max = GraphConfig().difficultyStep*len(GraphConfig().topics)*3
-    if (state.actual_number == max-1):
+    if (state.actual_number == max):
         goto = "image"
+        update = {}
     else:
         step = GraphConfig().difficultyStep
         if (state.actual_number % step == step-1):
@@ -126,27 +133,24 @@ async def router(state: State) -> Command[Literal["planner", "image"]]:
         elif (state.actual_number % (3*step-1) == 0):
             update = {"topicIndex": state.topicIndex + 1}
         goto = "planner"
-    print(f"[router] update: {update}, goto: {goto}")
+    print(f"--- ROUTER UPDATE: {update}, GOTO: {goto} ---")
     return Command(update=update, goto=goto)
 
 
 async def image(state: State) -> Command[Literal["__end__"]]:
-    print("\n----- image -----")
-    print("State:")
-    for k, v in vars(state).items():
-        print(f"  {k}: {v}")
-    print(f"Exporting {len(state.schemas_generations)} schemas...")
+    print_state(state, "IMAGE")
     for flow in state.schemas_generations:
-        name = directory+flow["id"]+".mmd"
-        print(f"[image] Writing {name}")
+        name = directory+flow["id"]+".md"
+        print(f" -> Writing {name}")
         with open(name, "w") as f:
             f.write(flow["content"])
-        # subprocess.run([
-        #    "mmdc",
-        #    "-i", name,
-        #    "-o", name.replace(".mmd", ".png")
-        # ], check=True)
-        # curl -X POST https://kroki.io/mermaid/png -H
-        #  "Content-Type: text/plain" -d 'graph TD; A-->B;' -o output.png
-    print("[image] All schemas exported.")
+    """
+         subprocess.run([
+           "mmdc",
+            "-i", name,
+            "-o", name.replace(".mmd", ".png")
+         ], check=True)
+    # curl -X POST https://kroki.io/mermaid/png -H "Content-Type: text/plain" -d "@.mmd" -o output.png
+    """
+    print("--- IMAGE: All schemas exported. ---")
     return Command(goto="__end__")

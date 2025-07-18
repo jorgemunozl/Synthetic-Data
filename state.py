@@ -2,7 +2,6 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from typing import Annotated
 from pydantic import BaseModel, Field
-from constants import topics, difficulty
 
 
 class State(BaseModel):
@@ -28,4 +27,3 @@ class State(BaseModel):
         default_factory=list,
         description="List of dicts id-mermaid",
     )
-    score: float = Field(default=0.0, description="score for the image")

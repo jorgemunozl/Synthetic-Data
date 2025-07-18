@@ -8,33 +8,82 @@ class Prompt:
 
 
 evalSheet = Prompt(
-    System="""User is gonna to give you a prompt for create a Mermaid
-    flowchart, you are gonna to create a evaluation sheet to then compare it with the actual Mermaid flow
-    you have to ask for logical, accuracy and whatever you considered important. Just return you askings""".strip(),
+    System=(
+        "You will receive a prompt for a Mermaid flowchart. Create a detailed "
+        "evaluation criteria checklist that will be used later to assess the "
+        "quality of the generated flowchart. Your checklist should include: "
+        "1) Syntax requirements (proper node formatting, connection syntax) "
+        "2) Logical structure criteria (flow direction, process completeness) "
+        "3) Content accuracy expectations (all key steps included, correct relationships) "
+        "4) Readability standards (clear labels, appropriate complexity) "
+        "\n"
+        "Format your response as a numbered list of specific, measurable criteria. "
+        "Be concise and avoid generic statements. Focus on concrete elements "
+        "that can be objectively evaluated in the flowchart."
+    ),
     Human="{prompt}".strip()
 )
 
 planner = Prompt(
-   System="""
-   You are a plannificator of Mermaid flowcharts, you are on charge about give the specific instructions (prompt) about the creation
-   of a topic. Exist three level of difficult/depth easy medium and hard, if the depth is easy so just give a simple flowchart. Just return the plan, nothing else.
-   """.strip(),
-   Human="Give me a Mermaid flowchart about {topic} with a difficult/depth {difficulty}".strip()
-   )
+    System=(
+        "You are a flowchart planning expert specializing in Mermaid diagrams. "
+        "Create detailed, specific instructions for generating a flowchart "
+        "about the requested topic. Adapt your instructions based on the "
+        "complexity level requested: "
+        "\n"
+        "- EASY: Create instructions for a simple, linear process with 5-7 steps, "
+        "focusing on core concepts and basic flows. "
+        "- MEDIUM: Design instructions for a moderately complex process with "
+        "8-12 steps, including decision points and multiple paths. "
+        "- HARD: Develop instructions for a comprehensive flowchart with 12+ "
+        "steps, including subprocesses, decision trees, and edge cases. "
+        "\n"
+        "Your output should be clear instructions that describe WHAT to include "
+        "in the diagram, not HOW to create it. Focus on process elements, "
+        "key decision points, relationships, and critical information to include. "
+        "Be specific about the subject matter details rather than diagram syntax."
+    ),
+    Human=(
+        "Give me a Mermaid flowchart planner about {topic} with a "
+        "difficult/depth {difficulty}"
+    )
+)
 generator = Prompt(
-   System="""
-   You are a generator of Mermaid flowchart, user is gonna to give a prompt and
-   you have to follow it in the best way. Just return the mermaid flow nothing else.
-   """.strip(),
-   Human="{indications}".strip()
+    System=(
+        "You are an expert Mermaid flowchart generator. The user will provide "
+        "a prompt and you must create a precise, well-structured flowchart "
+        "following Mermaid syntax rules. Important syntax requirements: "
+        "1) Avoid parentheses () in node text - use square brackets instead. "
+        "2) Don't use double quotes in text - use single quotes if needed. "
+        "3) Use proper edge syntax (-->, --->, ==>, etc.) to indicate flow. "
+        "4) Use proper subgraph syntax if needed. "
+        "5) Begin with ```mermaid and flowchart TD or similar directive. "
+        "Return ONLY the complete mermaid code without any explanations."
+    ),
+    Human="{indications}".strip()
 )
 reflection = Prompt(
-   System="""
-   You are on charge of review mermaid flowcharts, user is gonna to give you a mermaid id and you have to review its quality
-   Give a score a number between zero and one, if the Mermaid follow is perfect give one and if it contains a lot of 
-   mistakes then a number near to zero and if it needs a modification return a prompt. First think about the quality of the Mermaid and then return Modification score
-   just that. Is important that the last two characters be the score, just return what I'm asking nothing else. The prompt and the score.
-   Example: Is bad because this 0.1
-   """.strip(),
-   Human="This is the Mermaid: {target} \n This is the evaluation sheet that you have to use {sheet}".strip()
+    System=(
+        "You are an expert Mermaid flowchart reviewer. Evaluate the provided "
+        "flowchart against the evaluation criteria. Your assessment should focus "
+        "on these aspects: "
+        "1) Syntax correctness (no parentheses, proper quote usage, valid connections) "
+        "2) Logical flow and structure (clear start/end, proper branching) "
+        "3) Completeness based on requirements "
+        "4) Clarity and readability of the diagram "
+        "\n"
+        "Assign a score between 0.0 and 1.0 where: "
+        "- 1.0: Perfect flowchart meeting all requirements with no errors "
+        "- 0.7-0.9: Good flowchart with minor issues "
+        "- 0.4-0.6: Average flowchart with several issues needing improvement "
+        "- 0.0-0.3: Poor flowchart with major problems "
+        "\n"
+        "FORMAT: First provide specific feedback about issues and potential "
+        "improvements, then end with the exact score. The last two characters "
+        "of your response MUST be the numerical score. Example: The flowchart "
+        "has logical issues in the decision flow. Suggestion: modify branch X. 0.4, don't just double quotes or something like that"
+    ),
+    Human=(
+        "{target}\nAnd review it following {sheet}"
+    )
 )

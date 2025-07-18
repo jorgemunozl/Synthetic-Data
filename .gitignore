@@ -4,8 +4,7 @@ __pycache__/
 *$py.class
 uv.lock
 
-outputModel/
-stuff/
+flowcharts/
 
 # C extensions
 *.so

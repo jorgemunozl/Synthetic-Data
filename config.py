@@ -14,7 +14,7 @@ class GraphConfig(BaseModel):
         description="Temperature for all the models"
     )
     modelReasoning: Annotated[str, {}] = Field(
-        default="gpt-4o",
+        default="o4-mini",
         description="Model for the reflector node"
     )
     threshold: Annotated[float, {}] = Field(
