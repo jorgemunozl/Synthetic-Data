@@ -7,117 +7,34 @@ class Prompt:
     Human: str
 
 
+evalSheet = Prompt(
+    System="""User is gonna to give you a prompt for create a Mermaid
+    flowchart, you are gonna to create a evaluation sheet to then compare it with the actual Mermaid flow
+    you have to ask for logical, accuracy and whatever you considered important. Just return you askings""".strip(),
+    Human="{prompt}".strip()
+)
+
 planner = Prompt(
    System="""
-   Lorem Ipsum
+   You are a plannificator of Mermaid flowcharts, you are on charge about give the specific instructions (prompt) about the creation
+   of a topic. Exist three level of difficult/depth easy medium and hard, if the depth is easy so just give a simple flowchart. Just return the plan, nothing else.
    """.strip(),
-   Human="""
-  Lorem Ipsum
-  """.strip()
-)
+   Human="Give me a Mermaid flowchart about {topic} with a difficult/depth {difficulty}".strip()
+   )
 generator = Prompt(
    System="""
-   Lorem Ipsum
+   You are a generator of Mermaid flowchart, user is gonna to give a prompt and
+   you have to follow it in the best way. Just return the mermaid flow nothing else.
    """.strip(),
-   Human="""
-  Lorem Ipsum
-  """.strip()
+   Human="{indications}".strip()
 )
 reflection = Prompt(
    System="""
-   Lorem Ipsum
+   You are on charge of review mermaid flowcharts, user is gonna to give you a mermaid id and you have to review its quality
+   Give a score a number between zero and one, if the Mermaid follow is perfect give one and if it contains a lot of 
+   mistakes then a number near to zero and if it needs a modification return a prompt. First think about the quality of the Mermaid and then return Modification score
+   just that. Is important that the last two characters be the score, just return what I'm asking nothing else. The prompt and the score.
+   Example: Is bad because this 0.1
    """.strip(),
-   Human="""
-  Lorem Ipsum
-  """.strip()
+   Human="This is the Mermaid: {target} \n This is the evaluation sheet that you have to use {sheet}".strip()
 )
-
-promptSystem = """
-You are gonna to create a flowchart you are gonna to use this schema :
-  "nodes": [
-     "id": string, "type": "start" | "end" |
-       "decision" | "task", "text": string , "x": int,
-        "y": int,
-        "width": int,
-        "height": int
-  ],
-  "edges": [
-     "from": string, "to": string, "label": string ,
-     "fromSide": "bottom"| "top" | "left" | "rigth" , 
-     "toSide" : ...
-  ]
-Instructions:
-1. Identify Nodes
-  - For each distinct step or state in the description, create one node object.
-  - Assign `"id"` to a unique identifier (e.g. `"n1"`, `"n2"`, …).
-   - Set `"type"` based on its role:"
-     - `"start"` or `"end"` for the beginning or terminal steps,
-     - `"decision"` for yes/no or branch points,
-     - `"task"` for any other action or process.
-   - Use `"text"` for the exact text shown in the flowchart. If it is long put a \n in the middle of the text.
-   - Use `"x"` and `"y"` to position the figure in the xy plane. We read the flowchart from top to bottom, so `"y"` should
-   to decrease, use numbers similar like the example that user is gonna to give you. 
-   Is important to modify the `"x"` for better aesthetics, the difference of `"x"` between two nodes should be greather than 100.
-
-   - Use `"width"` and `"height"` to define the size of the rectangle or diamond or circle where text is gonna to be put,
-   so if is a long text increase both, for better stetics.
-2. Identify Edges
-   - For each transition or arrow between steps, create one edge object.
-   - Use `"from"` and `"to"` to reference the `id` of
-   the source and destination nodes.
-   - If the transition has a label (e.g. “YES”, “NO”, or any annotation),
-    put it in `"label"`. Otherwise set `"label": ""`.
-   - Use `"fromSide"` and `"toSide"` for the arrows end and start matching with "from" and "to", example
-    like the flowchart is tipically top-to-bottom `"fromSide:bottom"` "`toSide:top"`.      
-3. Ordering & Uniqueness
-   - List nodes in the logical order they
-    appear top‑to‑bottom or left‑to‑right.
-   - List edges in the sequence they occur or in
-   a consistent grouping by source node.
-   - Ensure all `id` values are unique and referenced correctly.
-Be precise with the logic and be simple, not more than ten nodes.
-"""
-promptHuman = """Generate a flowchart about {topic} use similar numbers of the follow example {seed_value}"""
-promptPlannerSystem = """
-You are gonna to create a prompt to generate a flowchart about a proccess on a general topic that user is gonna to give.
-The flowchart is gonna to be created using Mermaid so ask for mermaid.
-Exist three level of difficulty: easy ,medium and hard. A easy flowchart is a medium and the last is ...
-"""
-promptPlannerHumman = "Give me a Mermaid flowchart about {topic} "
-
-
-def promptValidator(variant,threshold):
-  prompt = f"""I generate a flowchart following the follow schema: {variant}; assign to the image a number between zero and one depending if the arrows are nice or not, if the score
-  is greater than {threshold} then just return that number and "Any", otherwise create a prompt for modify only the arrows for better aesthetics I care more about the arrows from the diamonds.
-  Just return those two anything else!
-  Example: 0.1 Modify the arrow from node n1 to n2 , 0.9 Any, don't use quotation marks. 
-  """
-  return prompt
-
-def promptImage(flowChartInfo):
-    promptImage = f"""
-    Draw a clean, professional flowchart representing
-    the {flowChartInfo["name"]} workflow described below:
-    {flowChartInfo}
-    For each object in nodes:
-      If "type": "start" or "end", draw a circle labeled with "label".
-      If "type": "decision", draw a diamond labeled with "label".
-      Otherwise (e.g. "type": "task"), draw a rectangle labeled with "label".
-    For each object in edges:
-    Draw an arrow from the shape with id="from" to the shape with id="to".
-    If "condition" isn’t empty, place that text
-    next to the arrow (e.g. “YES” or “NO”).
-    Extra styling notes:
-    All text in a clear, legible sans-serif font,
-    Uniform node sizing with padding around labels.
-    Straight or gently curved lines; avoid overlap.
-    with “YES” arrow going right or down-right, “NO” arrow going down or left.
-    The overall layout should flow top-to-bottom, centered on the page,
-    with consistent spacing between elements.
-    Arrows connecting nodes with arrowheads.
-    Produce the diagram at high resolution so all
-    labels are crisp and easily readable.
-    Don't put a title on the image.
-    And the background is a white color
-    """
-    return promptImage

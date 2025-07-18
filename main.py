@@ -1,8 +1,9 @@
 import asyncio
 import json
-from nodes import plannerNode, generatorNode, reflector, eval_sheet, images, router
+from nodes import plannerNode, generatorNode, reflector
+from nodes import evalSheetNode, image, router
 from state import State
-from langgraph.graph import StateGraph, START
+from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 
@@ -10,19 +11,18 @@ async def main(run_first_time: bool):
     thread_id = "session-1"
     builder = StateGraph(State)
     builder.add_node("planner", plannerNode)
-    builder.add_node("evaluation-sheet", evaluation_sheet)
     builder.add_node("generator", generatorNode)
     builder.add_node("reflector", reflector)
+    builder.add_node("evaluationSheet", evalSheetNode)
     builder.add_node("router", router)
-    builder.add_node("images", images)
+    builder.add_node("image", image)
     builder.add_edge(START, "planner")
+    builder.add_edge("image", END)
 
     if run_first_time:
         initial_dict = {
-            "messages": [],
-            "seed": "",
             "actual_number": 0,
-            "topic": "",
+            "topic": [],
             "number_generations": 0,
             "schemas_generations": [],
             "pathToImage": "",
@@ -51,7 +51,7 @@ async def main(run_first_time: bool):
             config={"configurable": {"thread_id": thread_id}}
         )
         latest_state = snapshot.values
-        num_image = latest_state["number_generations"]  
+        num_image = latest_state["number_generations"]
         print("-> Actual number of generated schemas:", num_image)
         name = "outputModel/schemas_generations.json"
         with open(name, "w") as f:

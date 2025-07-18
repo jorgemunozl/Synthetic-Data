@@ -1,7 +1,0 @@
-Error 400: SyntaxError: Parse error on line 1:
-flowchart TD    A[Start: See Someone
-----------------^
-Expecting 'NEWLINE', got 'NODE_STRING'
-Error: Syntax error in graph
-    at Worker.convert (file:///usr/local/kroki/src/worker.js:44:15)
-    at async file:///usr/local/kroki/src/index.js:31:28

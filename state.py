@@ -18,11 +18,11 @@ class State(BaseModel):
                                     description="Total number of generations")
     actual_number: int = Field(default=0,
                                description="Current generation index")
-    topic: list = Field(default=topics,
-                        description="Current topic")
     plannerOutput: str = Field(default="")
     generatorOutput: str = Field(default="")
-    difficulty: list = Field(default=difficulty)
+    difficultyIndex: int = Field(default=0)
+    topicIndex: int = Field(default=0)
+    evalSheet: str = Field(default="")
     recursion: int = Field(default=0)
     schemas_generations: list[dict] = Field(
         default_factory=list,

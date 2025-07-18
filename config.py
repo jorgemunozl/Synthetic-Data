@@ -10,7 +10,7 @@ class GraphConfig(BaseModel):
         description="Model for planner and generator nodes"
     )
     temperature: Annotated[float, {}] = Field(
-        default=0.3,
+        default=0,
         description="Temperature for all the models"
     )
     modelReasoning: Annotated[str, {}] = Field(
