@@ -2,6 +2,7 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from typing import Annotated
 from pydantic import BaseModel, Field
+from langchain_core.pydantic_v1 import validator
 
 
 class State(BaseModel):
@@ -26,4 +27,11 @@ class State(BaseModel):
     schemas_generations: list[dict] = Field(
         default_factory=list,
         description="List of dicts id-mermaid",
+    )
+
+
+class ReflectionOutput(BaseModel):
+    feedback: str = Field(description="Detailed feedback about the flowchart")
+    score: float = Field(
+        description="Score from 0.0 to 1.0 indicating quality of the flowchart"
     )

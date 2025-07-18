@@ -52,17 +52,10 @@ async def main(run_first_time: bool):
         result = await graph.ainvoke(  
             initial, config={"configurable": {"thread_id": thread_id}}
         )
-        """
         snapshot = await graph.aget_state(
             config={"configurable": {"thread_id": thread_id}}
         )
         latest_state = snapshot.values
-        os.makedirs(directory, exist_ok=True)
-        for flow in latest_state["schemas_generations"]:
-            name = directory + flow["id"] + ".md"
-            print(f" -> Writing : {name}")
-            with open(name, "w") as f:
-                f.write(flow["content"])
-                """
+
 if __name__ == "__main__":
     asyncio.run(main(True))

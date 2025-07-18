@@ -1,16 +1,12 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from typing_extensions import Literal
-from state import State
+from state import State, ReflectionOutput
 from prompts import planner, generator, reflection, evalSheet
 from config import GraphConfig
 from langgraph.types import Command
 import uuid
-import re
 from constants import directory
-from langchain_core.pydantic_v1 import BaseModel, Field, validator
-
-dif = ["easy", "medium", "hard"]
 
 
 def print_state(state: State, node_name: str):
@@ -25,19 +21,6 @@ def print_state(state: State, node_name: str):
         else:
             print(f"  {k}: {v}")
     print("--- END STATES ---\n")
-
-
-class ReflectionOutput(BaseModel):
-    feedback: str = Field(description="Detailed feedback about the flowchart")
-    score: float = Field(
-        description="Score from 0.0 to 1.0 indicating quality of the flowchart"
-    )
-    
-    @validator("score")
-    def validate_score(cls, v):
-        if v < 0.0 or v > 1.0:
-            raise ValueError("Score must be between 0.0 and 1.0")
-        return v
 
 
 async def plannerNode(state: State) -> Command[Literal["evalSheet"]]:
@@ -99,7 +82,6 @@ async def reflector(state: State) -> Command[Literal["generator", "router"]]:
     chain = prompt | llm
     result = await chain.ainvoke({"sheet": state.evalSheet,
                                  "target": state.generatorOutput})
-    
     score = result.score
     feedback = result.feedback
     print(f"--- REFLECTOR SCORE: {score}, FEEDBACK: ---\n{feedback}")

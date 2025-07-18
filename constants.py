@@ -8,3 +8,5 @@ topics = ["math"]
 difficulty = ["easy", "medium", "hard"]
 
 directory = "flowcharts/"
+
+dif = ["easy", "medium", "hard"]
