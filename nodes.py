@@ -6,7 +6,35 @@ from prompts import planner, generator, reflection, evalSheet
 from config import GraphConfig
 from langgraph.types import Command
 import uuid
-from constants import directory
+from constants import directory, dif, directoryPNG, directoryMer
+import subprocess
+import re
+
+
+def extract_mermaid_from_markdown(md_content):
+    pattern = r'```mermaid\s*([\s\S]*?)```'
+    matches = re.findall(pattern, md_content)
+    if matches:
+        return matches[0].strip()
+    else:
+        return ""
+
+
+def convert_mmd_to_png(input_file, output_file):
+    cmd = [
+        'curl',
+        '-X', 'POST',
+        'https://kroki.io/mermaid/png',
+        '-H', 'Content-Type: text/plain',
+        '--data-binary', f'@{input_file}',
+        '-o', output_file
+    ]
+    subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        check=True
+    )
 
 
 def print_state(state: State, node_name: str):
@@ -82,14 +110,16 @@ async def reflector(state: State) -> Command[Literal["generator", "router"]]:
     chain = prompt | llm
     result = await chain.ainvoke({"sheet": state.evalSheet,
                                  "target": state.generatorOutput})
-    score = result.score
-    feedback = result.feedback
+
+    score = result.get('score', 0.0)
+    feedback = result.get('feedback', "No feedback provided.")
+
     print(f"--- REFLECTOR SCORE: {score}, FEEDBACK: ---\n{feedback}")
     if (
         score < GraphConfig().threshold
         and state.recursion < GraphConfig().recursionLimit
     ):
-        feedback = state.generatorOutput + "Modifications" + feedback
+        feedback = state.generatorOutput + " -> Modifications" + feedback
         update = {"plannerOutput": feedback, "recursion": state.recursion+1}
         goto = "generator"
     else:
@@ -105,15 +135,15 @@ async def reflector(state: State) -> Command[Literal["generator", "router"]]:
 async def router(state: State) -> Command[Literal["planner", "image"]]:
     print_state(state, "ROUTER")
     max = GraphConfig().difficultyStep*len(GraphConfig().topics)*3
+    update = {}
     if (state.actual_number == max):
         goto = "image"
-        update = {}
     else:
         step = GraphConfig().difficultyStep
         if (state.actual_number % step == step-1):
-            update = {"difficultyIndex": (state.difficultyIndex+1) % 3}
-        elif (state.actual_number % (3*step-1) == 0):
-            update = {"topicIndex": state.topicIndex + 1}
+            update["difficultyIndex"] = (state.difficultyIndex+1) % 3
+        if (state.actual_number % (3*step) == 0):
+            update["topicIndex"] = state.topicIndex + 1
         goto = "planner"
     print(f"--- ROUTER UPDATE: {update}, GOTO: {goto} ---")
     return Command(update=update, goto=goto)
@@ -122,17 +152,16 @@ async def router(state: State) -> Command[Literal["planner", "image"]]:
 async def image(state: State) -> Command[Literal["__end__"]]:
     print_state(state, "IMAGE")
     for flow in state.schemas_generations:
-        name = directory+flow["id"]+".md"
-        print(f" -> Writing {name}")
-        with open(name, "w") as f:
+        md_name = directory + flow["id"] + ".md"
+        with open(md_name, "w") as f:
             f.write(flow["content"])
-    """
-         subprocess.run([
-           "mmdc",
-            "-i", name,
-            "-o", name.replace(".mmd", ".png")
-         ], check=True)
-    # curl -X POST https://kroki.io/mermaid/png -H "Content-Type: text/plain" -d "@.mmd" -o output.png
-    """
+        mmd_name = directoryMer + flow["id"] + ".mmd"
+        extracted_content = extract_mermaid_from_markdown(flow["content"])
+        with open(mmd_name, "w") as f:
+            f.write(extracted_content)
+        png_name = directoryPNG + flow["id"] + ".png"
+        convert_mmd_to_png(mmd_name, png_name)
+        print(f" -> Converted {mmd_name} to {png_name}")
+
     print("--- IMAGE: All schemas exported. ---")
     return Command(goto="__end__")

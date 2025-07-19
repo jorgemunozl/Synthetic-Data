@@ -2,7 +2,6 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from typing import Annotated
 from pydantic import BaseModel, Field
-from langchain_core.pydantic_v1 import validator
 
 
 class State(BaseModel):

@@ -5,6 +5,10 @@ __pycache__/
 uv.lock
 
 flowcharts/
+Mermaids/
+images/
+
+testing.py
 
 # C extensions
 *.so

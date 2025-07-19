@@ -1,11 +1,10 @@
 import asyncio
-import os
 from nodes import plannerNode, generatorNode, reflector
 from nodes import evalSheetNode, image, router
 from state import State
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-from constants import directory
+from langchain_core.runnables import RunnableConfig
 
 
 async def main(run_first_time: bool):
@@ -49,13 +48,20 @@ async def main(run_first_time: bool):
 
     async with AsyncSqliteSaver.from_conn_string("checkpoint.sqlite") as saver:
         graph = builder.compile(checkpointer=saver)
-        result = await graph.ainvoke(  
-            initial, config={"configurable": {"thread_id": thread_id}}
+        result = await graph.ainvoke(
+            initial,
+            config=RunnableConfig(
+                recursion_limit=10_000,
+                configurable={"thread_id": thread_id}
+            )
         )
+        print(type(result))
+        """
         snapshot = await graph.aget_state(
             config={"configurable": {"thread_id": thread_id}}
         )
         latest_state = snapshot.values
+"""
 
 if __name__ == "__main__":
     asyncio.run(main(True))

@@ -3,10 +3,14 @@
 #          "ecology", "computer science", "meteorology",
 #          "telecommunications", "gastronomy"]
 
-topics = ["math"]
+topics = ["gastronomy"]
 
 difficulty = ["easy", "medium", "hard"]
 
 directory = "flowcharts/"
 
+directoryMer = "Mermaids/"
+
 dif = ["easy", "medium", "hard"]
+
+directoryPNG = "images/"
