@@ -4,8 +4,9 @@ __pycache__/
 *$py.class
 uv.lock
 
-outputModel/
-stuff/
+flowcharts/
+Mermaids/
+images/
 
 # C extensions
 *.so
