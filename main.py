@@ -1,7 +1,7 @@
 import asyncio
 import json
-from nodes import generateVariants, createImage
-from nodes import generateTopic, tweaker, validator
+from nodes import (generateVariants, createImage, generateTopic, tweaker,
+                   validator)
 from state import State
 from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
@@ -33,7 +33,9 @@ async def main(run_first_time: bool):
             "actualRecursion": 0
         }
     else:
-        async with AsyncSqliteSaver.from_conn_string("checkpoint.sqlite") as saver:
+        async with AsyncSqliteSaver.from_conn_string(
+            "checkpoint.sqlite"
+        ) as saver:
             graph = builder.compile(checkpointer=saver)
             snapshot = await graph.aget_state(
                 config={"configurable": {"thread_id": thread_id}}
@@ -42,7 +44,9 @@ async def main(run_first_time: bool):
 
     initial = State(**initial_dict)
 
-    async with AsyncSqliteSaver.from_conn_string("checkpoint.sqlite") as saver:
+    async with AsyncSqliteSaver.from_conn_string(
+        "checkpoint.sqlite"
+    ) as saver:
         graph = builder.compile(checkpointer=saver)
         result = await graph.ainvoke(
             initial, config={"configurable": {"thread_id": thread_id}}

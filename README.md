@@ -1,6 +1,16 @@
 # Synthetic Data
 
-Slow and steady wins the race.
+An automated flowchart generation system that creates and validates Mermaid diagrams using Large Language Models (LLMs). The project generates synthetic flowcharts across multiple topics and difficulty levels, with built-in quality validation and multi-format output support.
+
+## Results
+
+The project generates flowcharts and converts them to different formats. Here are some example outputs:
+
+### Matplotlib Generated Flowchart
+![Matplotlib Result](prove.png)
+
+### Mermaid Generated Flowchart  
+![Mermaid Result](show.png)
 
 ## Package Manager
 

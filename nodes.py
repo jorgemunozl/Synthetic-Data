@@ -33,20 +33,27 @@ def parse_score_and_text(response: str):
 
 
 async def generateTopic(state: State) -> Command[Literal["generateVariants"]]:
-    llmTopic = ChatOpenAI(model=GraphConfig().base,
-                          temperature=GraphConfig().model_temperature)
+    llmTopic = ChatOpenAI(
+        model=GraphConfig().base,
+        temperature=GraphConfig().model_temperature
+    )
     prompt = ChatPromptTemplate.from_messages([
         ("system", promptTopicHum),
         ("human", promptTopicSys)
     ])
     chain = prompt | llmTopic
     response = await chain.ainvoke({})
-    return Command(update={"topic": response.content}, goto="generateVariants")
+    return Command(
+        update={"topic": response.content},
+        goto="generateVariants"
+    )
 
 
 async def generateVariants(state: State) -> Command[Literal["createImage"]]:
-    llm = ChatOpenAI(model=GraphConfig().base,
-                     temperature=GraphConfig().model_temperature)
+    llm = ChatOpenAI(
+        model=GraphConfig().base,
+        temperature=GraphConfig().model_temperature
+    )
     llm = llm.with_structured_output(GeneratorVariantOutput)
     prompt = ChatPromptTemplate.from_messages([
         ("system", promptSystem),
@@ -66,7 +73,10 @@ async def generateVariants(state: State) -> Command[Literal["createImage"]]:
     updated = list(state.schemas_generations)
     updated.append(my_dict)
     print(f" -> Schema number {state.number_generations} created!")
-    return Command(update={"schemas_generations": updated}, goto="createImage")
+    return Command(
+        update={"schemas_generations": updated},
+        goto="createImage"
+    )
 
 
 def createImage(state: State) -> Command[Literal["generateTopic",
@@ -81,25 +91,31 @@ def createImage(state: State) -> Command[Literal["generateTopic",
         model=GraphConfig().image,
         prompt=prompt,
         response_format="b64_json"
-        )
+    )
     if not response.data:
         print("No image; Response:", response)
+        return Command(goto="generateTopic")
     else:
         image_base64 = response.data[0].b64_json
-        image_bytes = base64.b64decode(image_base64)
-        dir_path = directoryOutput
-    os.makedirs(dir_path, exist_ok=True)
-    file_path = os.path.join(dir_path, f"{id}.png")
-    with open(file_path, "wb") as f:
-        f.write(image_bytes)
-    with open("original.png", "wb") as f:
-        f.write(image_bytes)
-    print(f" -> Image with: {id} created")
-    return Command(
-        update={"number_generations": state.number_generations+1,
-                "pathToImage": file_path, "actualRecursion": 0},
-        goto="validator"
-                )
+        if image_base64:
+            image_bytes = base64.b64decode(image_base64)
+            dir_path = directoryOutput
+            os.makedirs(dir_path, exist_ok=True)
+            file_path = os.path.join(dir_path, f"{id}.png")
+            with open(file_path, "wb") as f:
+                f.write(image_bytes)
+            with open("original.png", "wb") as f:
+                f.write(image_bytes)
+            print(f" -> Image with: {id} created")
+            return Command(
+                update={"number_generations": state.number_generations+1,
+                        "pathToImage": file_path, "actualRecursion": 0},
+                goto="validator"
+            )
+        else:
+            print("No base64 data in response")
+            return Command(goto="generateTopic")
+
 
 def validator(state: State) -> Command[Literal["tweaker",
                                                "generateTopic", "__end__"]]:
@@ -115,7 +131,10 @@ def validator(state: State) -> Command[Literal["tweaker",
             {
                 "role": "user",
                 "content": [
-                    {"type": "input_text", "text": promptValidator(variant,state.threshold)},
+                    {
+                        "type": "input_text",
+                        "text": promptValidator(variant, state.threshold)
+                    },
                     {
                         "type": "input_image",
                         "image_url": uri,
@@ -129,9 +148,11 @@ def validator(state: State) -> Command[Literal["tweaker",
     print(f"SCORE -> {score}")
     print(f"FEEDBACK -> {prompt}")
     stoptIteration = state.actual_number + NUM_IMAGES_TO_ADD
-    if (score >= state.threshold and state.number_generations < stoptIteration):
+    if (score >= state.threshold and
+            state.number_generations < stoptIteration):
         goto = "generateTopic"
-    if (score <= state.threshold and state.actualRecursion != state.recursionLimit):
+    if (score <= state.threshold and
+            state.actualRecursion != state.recursionLimit):
         goto = "tweaker"
     else:
         goto = "__end__"
@@ -156,4 +177,7 @@ def tweaker(state: State) -> Command[Literal["validator"]]:
     with open(state.pathToImage, "wb") as f:
         f.write(image_bytes)
     print(" -> Image modified created returning to validator")
-    return Command(update={"actualRecursion":state.actualRecursion+1}, goto="validator")
+    return Command(
+        update={"actualRecursion": state.actualRecursion+1},
+        goto="validator"
+    )
