@@ -1,0 +1,7 @@
+flowchart TD
+    A[Start] --> B[Input Numbers]
+    B --> C{Check Validity of Inputs}
+    C -->|Valid| D[Perform Addition]
+    C -->|Invalid| B
+    D --> E[Display Result]
+    E --> F[End]

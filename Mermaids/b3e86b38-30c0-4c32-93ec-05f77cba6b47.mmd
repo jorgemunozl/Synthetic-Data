@@ -1,0 +1,103 @@
+flowchart TD
+    A[Ecosystem Definition] --> B[Biotic and Abiotic Components]
+    B --> C[Examples: Forest, Desert, Ocean]
+    
+    subgraph Energy Flow
+        D[Sun] --> E[Producers: Photosynthesis]
+        E --> F[Primary Consumers: Herbivores]
+        F --> G[Secondary Consumers: Carnivores]
+        G --> H[Tertiary Consumers: Top Predators]
+        E --> I[Energy Loss: Metabolic Processes]
+        F --> I
+        G --> I
+    end
+    
+    subgraph Nutrient Cycles
+        J[Carbon Cycle] --> K[Photosynthesis]
+        K --> L[Respiration]
+        L --> M[Decomposition]
+        M --> N[Fossil Fuel Combustion]
+        
+        O[Nitrogen Cycle] --> P[Nitrogen Fixation]
+        P --> Q[Nitrification]
+        Q --> R[Assimilation]
+        R --> S[Ammonification]
+        S --> T[Denitrification]
+        
+        U[Water Cycle] --> V[Evaporation]
+        V --> W[Condensation]
+        W --> X[Precipitation]
+        X --> Y[Infiltration]
+    end
+    
+    subgraph Population Dynamics
+        Z[Population Growth Factors] --> AA[Birth Rate, Death Rate]
+        AA --> AB[Immigration, Emigration]
+        AB --> AC{Density Factors}
+        AC -->|Density-Dependent| AD[Competition, Predation]
+        AC -->|Density-Independent| AE[Weather, Natural Disasters]
+    end
+    
+    subgraph Community Interactions
+        AF[Species Interactions] --> AG[Mutualism]
+        AG --> AH[Commensalism]
+        AH --> AI[Parasitism]
+        AI --> AJ[Predation]
+        AJ --> AK[Competition]
+        AK --> AL[Keystone Species Impact]
+    end
+    
+    subgraph Biodiversity and Conservation
+        AM[Biodiversity Importance] --> AN[Ecosystem Resilience]
+        AN --> AO[Threats: Habitat Destruction, Pollution]
+        AO --> AP[Climate Change, Invasive Species]
+        AP --> AQ[Conservation Strategies]
+        AQ --> AR[Protected Areas, Restoration Ecology]
+        AR --> AS[Sustainable Practices]
+    end
+    
+    subgraph Human Impact
+        AT[Human Activities] --> AU[Deforestation, Urbanization]
+        AU --> AV[Agriculture Impact]
+        AV --> AW{Sustainability Evaluation}
+        AW -->|Sustainable| AX[Positive Practices]
+        AW -->|Unsustainable| AY[Negative Practices]
+    end
+    
+    subgraph Climate Change Effects
+        AZ[Climate Change Impact] --> BA[Species Distribution Shifts]
+        BA --> BB[Phenology Changes]
+        BB --> BC[Mitigation Strategies]
+        BC --> BD[Renewable Energy, Carbon Sequestration]
+    end
+    
+    subgraph Ecological Succession
+        BE[Primary Succession] --> BF[Bare Rock]
+        BF --> BG[Pioneer Species]
+        BG --> BH[Intermediate Species]
+        BH --> BI[Climax Community]
+        
+        BJ[Secondary Succession] --> BK[After Fire]
+        BK --> BG
+    end
+    
+    subgraph Ecosystem Services
+        BL[Provisioning Services] --> BM[Food, Water]
+        BM --> BN[Regulating Services]
+        BN --> BO[Climate, Disease]
+        BO --> BP[Supporting Services]
+        BP --> BQ[Nutrient Cycles]
+        BQ --> BR[Cultural Services]
+        BR --> BS[Recreational, Spiritual]
+    end
+    
+    subgraph Feedback Loops
+        BT[Feedback Loops] --> BU[Positive Feedback]
+        BU --> BV[Predator-Prey Dynamics]
+        BV --> BW[Negative Feedback]
+        BW --> BX[Climate Feedback Mechanisms]
+    end
+    
+    BY[Future Challenges] --> BZ[Balancing Human Needs]
+    BZ --> CA[Ecological Preservation]
+    CA --> CB[Advancing Ecological Research]

@@ -1,0 +1,51 @@
+flowchart TD
+    A[Start: Stellar Formation]
+    B[Interstellar Cloud Nebula]
+    C[Protostar Formation]
+    D[Main Sequence Star]
+    E{Star Mass > 8 Solar Masses?}
+    F[High-Mass Star]
+    G[Low-Mass Star]
+    H[Red Giant Phase]
+    I[Helium Burning]
+    J[Helium Flash]
+    K[Planetary Nebula Ejection]
+    L[White Dwarf Formation]
+    M[Cooling and Fading]
+    N[Black Dwarf Theoretical]
+    O[Red Supergiant Phase]
+    P[Multiple Shell Burning]
+    Q[Core Collapse]
+    R{Core Mass > 3 Solar Masses?}
+    S[Black Hole Formation]
+    T[Neutron Star Formation]
+    U[Supernova Explosion]
+    V[Heavy Element Creation]
+    W[Interstellar Medium Enrichment]
+    X[End: Stellar Remnants]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E -- Yes --> F
+    E -- No --> G
+    G --> H
+    H --> I
+    I --> J
+    J --> K
+    K --> L
+    L --> M
+    M --> N
+    F --> O
+    O --> P
+    P --> Q
+    Q --> R
+    R -- Yes --> S
+    R -- No --> T
+    T --> U
+    S --> U
+    U --> V
+    U --> W
+    V --> W
+    W --> X

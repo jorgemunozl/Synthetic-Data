@@ -1,0 +1,38 @@
+flowchart TD
+    A[Start] --> B[Define Problem]
+    B -->|Input: Problem Statement| C[Clear Understanding of Problem]
+    C --> D{Analyze Problem}
+    D -->|Algebra| E[Identify Variables and Equations]
+    E --> F[Simplify Equations]
+    F --> G{Is it Solvable?}
+    G -->|Yes| H[Solve Algebraically]
+    G -->|No| D
+    D -->|Calculus| I[Determine if Differentiation or Integration is Needed]
+    I --> J[Apply Calculus Rules]
+    J --> K{Is Solution Valid?}
+    K -->|Yes| L[Verify Solution]
+    K -->|No| I
+    D -->|Geometry| M[Identify Shapes and Properties]
+    M --> N[Apply Geometric Theorems]
+    N --> O{Is Solution Logical?}
+    O -->|Yes| L
+    O -->|No| M
+    D -->|Statistics| P[Collect Data]
+    P --> Q[Choose Statistical Method]
+    Q --> R[Apply Statistical Analysis]
+    R --> S{Are Results Significant?}
+    S -->|Yes| T[Interpret Results]
+    S -->|No| P
+    T --> U[Solve Problem]
+    H --> U
+    L --> U
+    U --> V{Is Solution Achieved?}
+    V -->|Yes| W[Verify Solution]
+    V -->|No| D
+    W --> X[Cross-check with Original Problem]
+    X --> Y{Is Solution Correct?}
+    Y -->|Yes| Z[Document Solution]
+    Y -->|No| D
+    Z --> AA[Write Detailed Solution Steps]
+    AA --> AB[Include Diagrams and Graphs if Necessary]
+    AB --> AC[End]

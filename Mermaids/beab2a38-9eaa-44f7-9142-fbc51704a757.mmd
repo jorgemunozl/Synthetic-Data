@@ -1,0 +1,45 @@
+flowchart TD
+    A[Ecosystem]
+    A --> B[Biotic Components]
+    A --> C[Abiotic Components]
+    
+    subgraph Biotic_Examples
+        B1[Plants]
+        B2[Animals]
+        B3[Microorganisms]
+    end
+    B --> Biotic_Examples
+    
+    subgraph Abiotic_Examples
+        C1[Water]
+        C2[Soil]
+        C3[Air]
+        C4[Sunlight]
+    end
+    C --> Abiotic_Examples
+    
+    D[Energy Flow]
+    D --> B
+    D --> C
+    C4 --> D
+    B1 --> D
+    B2 --> D
+    
+    E[Nutrient Cycling]
+    E --> B
+    E --> C
+    
+    F[Interactions]
+    F --> B
+    
+    subgraph Interaction_Examples
+        F1[Predation]
+        F2[Competition]
+        F3[Symbiosis]
+    end
+    F --> Interaction_Examples
+    
+    G[Ecological Balance]
+    G --> D
+    G --> E
+    G --> F

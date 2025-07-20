@@ -1,0 +1,21 @@
+flowchart TD
+    A[Start] --> B[Patient Consultation]
+    B --> C[Diagnosis]
+    C --> D[Treatment Plan]
+    D --> E[Check for Allergies]
+    E --> F{Allergies Present?}
+    F -->|Yes| G[Adjust Treatment Plan]
+    F -->|No| H[Check for Drug Interactions]
+    G --> H
+    H --> I{Drug Interactions?}
+    I -->|Yes| J[Adjust Treatment Plan]
+    I -->|No| K[Prescription Decision]
+    J --> K
+    K --> L[Prescription Writing]
+    L --> M[Patient Education]
+    M --> N{Adverse Reactions?}
+    N -->|Yes| O[Adjust Treatment Plan]
+    N -->|No| P[Follow-up Plan]
+    O --> P
+    P --> Q[Feedback Mechanism]
+    Q --> R[End]

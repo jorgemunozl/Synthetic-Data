@@ -1,0 +1,33 @@
+flowchart TD
+    A['Ecosystem']
+    B['Biotic Components']
+    C['Abiotic Components']
+    D['Energy Flow']
+    E['Nutrient Cycling']
+    F['Biodiversity']
+    G['Human Impact']
+
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+    B --> E
+    C --> E
+    B --> F
+    A --> G
+
+    subgraph Biotic_Examples
+        B1['Plants']
+        B2['Animals']
+        B3['Microorganisms']
+    end
+
+    subgraph Abiotic_Examples
+        C1['Water']
+        C2['Air']
+        C3['Soil']
+        C4['Sunlight']
+    end
+
+    B --> Biotic_Examples
+    C --> Abiotic_Examples

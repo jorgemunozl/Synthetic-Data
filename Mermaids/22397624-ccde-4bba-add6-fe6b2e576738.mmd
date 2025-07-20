@@ -1,0 +1,68 @@
+flowchart TD
+    subgraph Project_Initiation
+        A1[Start: Define project goals and objectives]
+        A2[Stakeholder Identification: List all stakeholders]
+        A3[Feasibility Study: Assess site conditions, budget, and regulations]
+        A1 --> A2 --> A3
+        A3 -->|Proceed if feasible| B1
+    end
+
+    subgraph Conceptual_Design
+        B1[Initial Design Brief: Develop based on client requirements]
+        B2[Site Analysis: Analyze topography, climate, zoning]
+        B3[Concept Development: Create initial design concepts]
+        B1 --> B2 --> B3
+    end
+
+    subgraph Schematic_Design
+        C1[Design Options: Develop multiple options]
+        C2[Client Feedback: Gather and select preferred option]
+        C3[Preliminary Cost Estimate: Provide rough estimate]
+        B3 --> C1 --> C2 --> C3
+    end
+
+    subgraph Design_Development
+        D1[Detailed Design: Refine materials, systems, aesthetics]
+        D2[Engineering Coordination: Integrate structural, mechanical, electrical]
+        D3[Regulatory Compliance: Ensure design meets codes]
+        C3 --> D1 --> D2 --> D3
+    end
+
+    subgraph Construction_Documentation
+        E1[Detailed Drawings: Prepare architectural drawings and specs]
+        E2[Permit Application: Submit documents for permits]
+        E3[Bid Preparation: Develop bid documents]
+        D3 --> E1 --> E2 --> E3
+    end
+
+    subgraph Bidding_and_Negotiation
+        F1[Contractor Selection: Evaluate bids and select contractor]
+        F2[Contract Negotiation: Finalize terms with contractor]
+        E3 --> F1 --> F2
+    end
+
+    subgraph Construction_Administration
+        G1[Construction Kick-off: Conduct pre-construction meeting]
+        G2[Site Visits: Monitor progress and quality]
+        G3[Change Management: Handle design changes]
+        F2 --> G1 --> G2 --> G3
+    end
+
+    subgraph Project_Closeout
+        H1[Final Inspection: Conduct walkthrough]
+        H2[Punch List: Create list of remaining tasks]
+        H3[Client Handover: Transfer documentation and keys]
+        G3 --> H1 --> H2 --> H3
+    end
+
+    subgraph Post_Occupancy_Evaluation
+        I1[Feedback Collection: Gather client and occupant feedback]
+        I2[Performance Review: Assess building performance]
+        H3 --> I1 --> I2
+    end
+
+    A3 -->|Not feasible| End1[End Process]
+    C2 -->|Design Option Selection| D1
+    G3 -->|Budget Overruns| G2
+    G3 -->|Design Revisions| D1
+    I2 --> End2[End Process]
