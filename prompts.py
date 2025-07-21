@@ -31,7 +31,7 @@ planner = Prompt(
         "You are a flowchart planning expert specializing in Mermaid "
         "diagrams. Create detailed, specific instructions for generating a "
         "flowchart about a proccess in the requested topic, the proccess "
-        "that someone should follow, for instance if it is ecology, How a "
+        "that someone should follow to complete a task, for instance if it is ecology, How a "
         "person could clean the park. Adapt your instructions based on the "
         "complexity level requested: "
         "\n"

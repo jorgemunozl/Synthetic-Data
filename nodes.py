@@ -108,11 +108,19 @@ async def reflector(state: State) -> Command[Literal["generator", "router"]]:
         ("human", reflection.Human)
     ])
     chain = prompt | llm
-    result = await chain.ainvoke({"sheet": state.evalSheet,
-                                 "target": state.generatorOutput})
+    result = await chain.ainvoke({
+        "sheet": state.evalSheet,
+        "target": state.generatorOutput
+    })
 
-    score = result.get('score', 0.0)
-    feedback = result.get('feedback', "No feedback provided.")
+    # Handle both dict and ReflectionOutput cases
+    if isinstance(result, dict):
+        score = result.get('score', 0.0)
+        feedback = result.get('feedback', "No feedback provided.")
+    else:
+        # It's a ReflectionOutput object
+        score = getattr(result, 'score', 0.0)
+        feedback = getattr(result, 'feedback', "No feedback provided.")
 
     print(f"--- REFLECTOR SCORE: {score}, FEEDBACK: ---\n{feedback}")
     if (

@@ -8,6 +8,7 @@ dependencies = [
     "aiosqlite>=0.21.0",
     "asyncpg>=0.30.0",
     "langchain>=0.3.26",
+    "langchain-core>=0.3.67",
     "langchain-openai>=0.3.24",
     "langgraph>=0.4.8",
     "langgraph-checkpoint-sqlite>=2.0.10",

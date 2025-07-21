@@ -8,8 +8,7 @@ flowcharts/
 Mermaids/
 images/
 
-testing.py
-
+count.py
 # C extensions
 *.so
 *.sqlite

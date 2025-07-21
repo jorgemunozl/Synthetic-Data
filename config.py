@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field
 from constants import topics
 
 
-
 class GraphConfig(BaseModel):
     modelBase: Annotated[str, {}] = Field(
         default="gpt-4o",
@@ -22,7 +21,7 @@ class GraphConfig(BaseModel):
         description="Threshold that reflector is gonna to use"
     )
     difficultyStep: Annotated[int, {}] = Field(
-        default=1,
+        default=3,
         description="Number of flowcharts to jump of difficulty"
     )
     topics: Annotated[list, {}] = Field(
