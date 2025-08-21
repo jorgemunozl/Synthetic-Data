@@ -1,4 +1,25 @@
-# Synthetic Data
+# 🚀 Synthetic Data Generator
+
+An AI-powered educational content generator that creates interactive flowcharts and diagrams using advanced LangGraph workflows. This project combines OpenAI's language models with automated diagram generation to produce high-quality educational materials.
+
+## ✨ Features
+
+- 🤖 **AI-Powered Content Generation**: Uses OpenAI GPT models for intelligent content creation
+- 📊 **Automated Flowchart Generation**: Converts text descriptions into Mermaid diagrams
+- 🔄 **Iterative Quality Improvement**: Self-reflection and refinement through LangGraph workflows
+- 🚀 **FastAPI Integration**: RESTful API for easy integration and deployment
+- 📈 **Scalable Architecture**: Built with async/await patterns for high performance
+- 🎯 **Educational Focus**: Specialized in creating learning materials and tutorials
+
+## 🛠️ Tech Stack
+
+- **Python 3.12+** - Core language
+- **LangGraph** - Workflow orchestration and graph processing
+- **LangChain** - LLM integration and prompt management
+- **FastAPI** - High-performance web API framework
+- **OpenAI API** - Advanced language model capabilities
+- **Mermaid** - Diagram and flowchart generation
+- **Pydantic** - Data validation and settings management
 
 Slow and steady wins the race.
 
