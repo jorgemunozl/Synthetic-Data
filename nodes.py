@@ -6,7 +6,7 @@ from prompts import planner, generator, reflection, evalSheet
 from config import GraphConfig
 from langgraph.types import Command
 import uuid
-from constants import directory, dif, directoryPNG, directoryMer
+from constants import directoryMD, directoryPNG, directoryMer
 import subprocess
 import re
 
@@ -61,8 +61,8 @@ async def plannerNode(state: State) -> Command[Literal["evalSheet"]]:
     ])
     chain = prompt | llm
     response = await chain.ainvoke({
-        "difficulty": dif[state.difficultyIndex],
-        "topic": GraphConfig().topics[state.topicIndex]
+        "difficulty": state.promptUser,
+        "topic": state.diffUser
     })
     print(f"--- PLANNER OUTPUT ---\n{response.content}")
     return Command(update={"plannerOutput": response.content, "recursion": 0},
@@ -113,12 +113,10 @@ async def reflector(state: State) -> Command[Literal["generator", "router"]]:
         "target": state.generatorOutput
     })
 
-    # Handle both dict and ReflectionOutput cases
     if isinstance(result, dict):
         score = result.get('score', 0.0)
         feedback = result.get('feedback', "No feedback provided.")
     else:
-        # It's a ReflectionOutput object
         score = getattr(result, 'score', 0.0)
         feedback = getattr(result, 'feedback', "No feedback provided.")
 
@@ -134,42 +132,30 @@ async def reflector(state: State) -> Command[Literal["generator", "router"]]:
         newSchemas = list(state.schemas_generations)
         variant = {"id": str(uuid.uuid4()), "content": state.generatorOutput}
         newSchemas.append(variant)
-        update = {"actual_number": state.actual_number+1,
-                  "schemas_generations": newSchemas}
+        update = {"schemas_generations": newSchemas}
         goto = "router"
     return Command(update=update, goto=goto)
 
 
-async def router(state: State) -> Command[Literal["planner", "image"]]:
+async def router(state: State) -> Command[Literal["image"]]:
     print_state(state, "ROUTER")
-    max = GraphConfig().difficultyStep*len(GraphConfig().topics)*3
-    update = {}
-    if (state.actual_number == max):
-        goto = "image"
-    else:
-        step = GraphConfig().difficultyStep
-        if (state.actual_number % step == step-1):
-            update["difficultyIndex"] = (state.difficultyIndex+1) % 3
-        if (state.actual_number % (3*step) == 0):
-            update["topicIndex"] = state.topicIndex + 1
-        goto = "planner"
-    print(f"--- ROUTER UPDATE: {update}, GOTO: {goto} ---")
-    return Command(update=update, goto=goto)
+    goto = "image"
+    return Command(goto=goto)
 
 
 async def image(state: State) -> Command[Literal["__end__"]]:
     print_state(state, "IMAGE")
-    for flow in state.schemas_generations:
-        md_name = directory + flow["id"] + ".md"
+    for flowchart in state.schemas_generations:
+        md_name = directoryMD + flowchart["id"] + ".md"
         with open(md_name, "w") as f:
-            f.write(flow["content"])
-        mmd_name = directoryMer + flow["id"] + ".mmd"
-        extracted_content = extract_mermaid_from_markdown(flow["content"])
+            f.write(flowchart["content"])
+        mmd_name = directoryMer + flowchart["id"] + ".mmd"
+        extracted_content = extract_mermaid_from_markdown(flowchart["content"])
         with open(mmd_name, "w") as f:
             f.write(extracted_content)
-        png_name = directoryPNG + flow["id"] + ".png"
+        png_name = directoryPNG + flowchart["id"] + ".png"
         convert_mmd_to_png(mmd_name, png_name)
         print(f" -> Converted {mmd_name} to {png_name}")
 
     print("--- IMAGE: All schemas exported. ---")
-    return Command(goto="__end__")
+    return Command(update={"filepath": png_name}, goto="__end__")

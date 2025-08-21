@@ -9,24 +9,19 @@ class State(BaseModel):
         default_factory=list,
         description="Conversation history messages",
     )
-    seed: str = Field(
-        default=str(""),
-        description="Seed value for generation",
-    )
     number_generations: int = Field(default=0,
                                     description="Total number of generations")
-    actual_number: int = Field(default=0,
-                               description="Current generation index")
     plannerOutput: str = Field(default="")
     generatorOutput: str = Field(default="")
-    difficultyIndex: int = Field(default=0)
-    topicIndex: int = Field(default=0)
     evalSheet: str = Field(default="")
     recursion: int = Field(default=0)
     schemas_generations: list[dict] = Field(
         default_factory=list,
         description="List of dicts id-mermaid",
     )
+    filepath: str = Field(default="")
+    promptUser: str = Field(default="")
+    diffUser: str = Field(default="")
 
 
 class ReflectionOutput(BaseModel):

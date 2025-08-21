@@ -4,11 +4,11 @@ __pycache__/
 *$py.class
 uv.lock
 
-flowcharts/
+flowchartsMd/
 Mermaids/
 images/
+FlowchartsAPI/
 
-count.py
 # C extensions
 *.so
 *.sqlite

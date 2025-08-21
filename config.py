@@ -1,6 +1,5 @@
 from typing import Annotated
 from pydantic import BaseModel, Field
-from constants import topics
 
 
 class GraphConfig(BaseModel):
@@ -17,16 +16,12 @@ class GraphConfig(BaseModel):
         description="Model for the reflector node"
     )
     threshold: Annotated[float, {}] = Field(
-        default=0.8,
+        default=0.4,
         description="Threshold that reflector is gonna to use"
     )
     difficultyStep: Annotated[int, {}] = Field(
         default=3,
         description="Number of flowcharts to jump of difficulty"
-    )
-    topics: Annotated[list, {}] = Field(
-        default=topics,
-        description="Model topics for the flowcharts"
     )
     recursionLimit: Annotated[int, {}] = Field(
         default=2,
