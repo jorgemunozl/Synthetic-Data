@@ -145,17 +145,20 @@ async def router(state: State) -> Command[Literal["image"]]:
 
 async def image(state: State) -> Command[Literal["__end__"]]:
     print_state(state, "IMAGE")
+    update = {"imagesGenerated": [], "mermaidGenerated": []}
     for flowchart in state.schemas_generations:
         md_name = directoryMD + flowchart["id"] + ".md"
         with open(md_name, "w") as f:
             f.write(flowchart["content"])
         mmd_name = directoryMer + flowchart["id"] + ".mmd"
         extracted_content = extract_mermaid_from_markdown(flowchart["content"])
+        update["mermamidGenerated"].append(extracted_content)
         with open(mmd_name, "w") as f:
             f.write(extracted_content)
         png_name = directoryPNG + flowchart["id"] + ".png"
         convert_mmd_to_png(mmd_name, png_name)
+        update["imageGenerated"].append(png_name)
         print(f" -> Converted {mmd_name} to {png_name}")
 
     print("--- IMAGE: All schemas exported. ---")
-    return Command(update={"filepath": png_name}, goto="__end__")
+    return Command(update=update, goto="__end__")

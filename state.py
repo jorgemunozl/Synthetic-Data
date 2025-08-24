@@ -19,7 +19,14 @@ class State(BaseModel):
         default_factory=list,
         description="List of dicts id-mermaid",
     )
-    filepath: str = Field(default="")
+    imagesGenerated: list[str] = Field(
+        default_factory=list,
+        description="routesToImages"
+    )
+    mermaidGenerated: list[str] = Field(
+        default_factory=list,
+        description="MermaidCode"
+    )
     promptUser: str = Field(default="")
     diffUser: str = Field(default="")
 

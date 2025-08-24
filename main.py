@@ -5,6 +5,15 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.runnables import RunnableConfig
 from fastapi import FastAPI, Query
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
+import io, zipfile
+import tempfile
+import os
+
+
+class FlowchartRequest(BaseModel):
+    prompt: str
+    difficulty: str
 
 
 async def main(prompt: str, diff: str):
@@ -27,7 +36,6 @@ async def main(prompt: str, diff: str):
             "recursion": 0,
             "schemas_generations": [],
             "score": 0.0,
-            "filepath": "",
             "promptUser": prompt,
             "diffUser": diff
         }
@@ -41,15 +49,29 @@ async def main(prompt: str, diff: str):
                 configurable={"thread_id": thread_id}
             )
         )
-    return result["filepath"]
+    return result["imagesGenerated"], result["mermaidGenerated"]
 
 app = FastAPI()
 
 
-# Lack parser
-@app.get("/images")
-async def read_prompt(promptUser: str = Query(..., description="Prompt:"),
-                      DiffUser: str = Query(..., description="Difficulty:")
-                      ):
-    filepath = await main(promptUser, DiffUser)
-    return FileResponse(filepath, media_type="image/png")
+@app.get("/download-zip")
+async def create_zip(promptUser: str = Query(..., description="Prompt:"),
+                     DiffUser: str = Query(..., description="Difficulty:")
+                     ):
+    images, mermaid = await main(promptUser, DiffUser)
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_file:
+        zip_path = tmp_file.name
+
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for i in range(len(images)):
+            if os.path.exists(images[i]):
+                zipf.write(images[i], f"images/{images[i]}")
+            else:
+                zipf.writestr(f"images/{image}", f"Placeholder for {image}")
+            zipf.writestr(f"mermaid/{images[i][:-4]}.mmd", mermaid[i])
+    return FileResponse(
+        zip_path,
+        media_type="application/zip",
+        filename="generated_files.zip",
+        headers={"Content-Disposition": "attachment; filename=generated_files.zip"}
+    )
