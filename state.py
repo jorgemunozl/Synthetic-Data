@@ -28,7 +28,7 @@ class State(BaseModel):
         description="MermaidCode"
     )
     promptUser: str = Field(default="")
-    diffUser: str = Field(default="")
+    diffUser: int = Field(default=0)
 
 
 class ReflectionOutput(BaseModel):

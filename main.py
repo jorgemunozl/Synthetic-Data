@@ -6,17 +6,17 @@ from langchain_core.runnables import RunnableConfig
 from fastapi import FastAPI, Query
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-import io, zipfile
+import zipfile
 import tempfile
 import os
 
 
 class FlowchartRequest(BaseModel):
     prompt: str
-    difficulty: str
+    difficulty: int
 
 
-async def main(prompt: str, diff: str):
+async def main(prompt: str, diff: int):
     thread_id = "session-1"
     builder = StateGraph(State)
     builder.add_node("planner", plannerNode)
@@ -56,7 +56,7 @@ app = FastAPI()
 
 @app.get("/download-zip")
 async def create_zip(promptUser: str = Query(..., description="Prompt:"),
-                     DiffUser: str = Query(..., description="Difficulty:")
+                     DiffUser: int = Query(..., description="Difficulty:")
                      ):
     images, mermaid = await main(promptUser, DiffUser)
     with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_file:

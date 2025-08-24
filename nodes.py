@@ -6,7 +6,7 @@ from prompts import planner, generator, reflection, evalSheet
 from config import GraphConfig
 from langgraph.types import Command
 import uuid
-from constants import directoryMD, directoryPNG, directoryMer
+from constants import directoryMD, directoryPNG, directoryMer, difficulty
 import subprocess
 import re
 
@@ -61,7 +61,7 @@ async def plannerNode(state: State) -> Command[Literal["evalSheet"]]:
     ])
     chain = prompt | llm
     response = await chain.ainvoke({
-        "difficulty": state.promptUser,
+        "difficulty": difficulty[state],
         "topic": state.diffUser
     })
     print(f"--- PLANNER OUTPUT ---\n{response.content}")
