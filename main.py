@@ -46,7 +46,6 @@ async def main(prompt: str, diff: str):
 app = FastAPI()
 
 
-# Lack parser
 @app.get("/images")
 async def read_prompt(promptUser: str = Query(..., description="Prompt:"),
                       DiffUser: str = Query(..., description="Difficulty:")
