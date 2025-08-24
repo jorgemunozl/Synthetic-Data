@@ -3,9 +3,9 @@ from nodes import evalSheetNode, image, router
 from state import State
 from langgraph.graph import StateGraph, START, END
 from langchain_core.runnables import RunnableConfig
-from fastapi import FastAPI, Query
+from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import zipfile
 import tempfile
 import os
@@ -13,7 +13,10 @@ import os
 
 class FlowchartRequest(BaseModel):
     prompt: str
-    difficulty: int
+    difficulty: int = Field(
+        gt=0,
+        description="Difficulty must be greater than 0"
+    )
 
 
 async def main(prompt: str, diff: int):
@@ -34,10 +37,14 @@ async def main(prompt: str, diff: int):
             "generatorOutput": "",
             "evalSheet": "",
             "recursion": 0,
+            "difficultyIndex": 0,
+            "actual_number": 0,
             "schemas_generations": [],
             "score": 0.0,
             "promptUser": prompt,
-            "diffUser": diff
+            "diffUser": diff,
+            "imagesGenerated": [],
+            "mermaidGenerated": []
         }
 
     initial = State(**initial_dict)
@@ -54,24 +61,30 @@ async def main(prompt: str, diff: int):
 app = FastAPI()
 
 
-@app.get("/download-zip")
-async def create_zip(promptUser: str = Query(..., description="Prompt:"),
-                     DiffUser: int = Query(..., description="Difficulty:")
-                     ):
-    images, mermaid = await main(promptUser, DiffUser)
+@app.post("/download-zip")
+async def create_zip(request: FlowchartRequest):
+    images, mermaid = await main(request.prompt, request.difficulty)
     with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_file:
         zip_path = tmp_file.name
 
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for i in range(len(images)):
             if os.path.exists(images[i]):
-                zipf.write(images[i], f"images/{images[i]}")
+                filename = os.path.basename(images[i])
+                zipf.write(images[i], f"images/{filename}")
             else:
-                zipf.writestr(f"images/{image}", f"Placeholder for {image}")
-            zipf.writestr(f"mermaid/{images[i][:-4]}.mmd", mermaid[i])
+                filename = os.path.basename(images[i])
+                zipf.writestr(f"images/{filename}",
+                              f"Placeholder for {images[i]}")
+            if i < len(mermaid):
+                mermaid_filename = os.path.basename(images[i])[:-4] + ".mmd"
+                zipf.writestr(f"mermaid/{mermaid_filename}", mermaid[i])
+
     return FileResponse(
         zip_path,
         media_type="application/zip",
         filename="generated_files.zip",
-        headers={"Content-Disposition": "attachment; filename=generated_files.zip"}
+        headers={
+            "Content-Disposition": "attachment; filename=generated_files.zip"
+        }
     )

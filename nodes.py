@@ -61,8 +61,8 @@ async def plannerNode(state: State) -> Command[Literal["evalSheet"]]:
     ])
     chain = prompt | llm
     response = await chain.ainvoke({
-        "difficulty": difficulty[state],
-        "topic": state.diffUser
+        "difficulty": difficulty[state.difficultyIndex],
+        "topic": state.promptUser
     })
     print(f"--- PLANNER OUTPUT ---\n{response.content}")
     return Command(update={"plannerOutput": response.content, "recursion": 0},
@@ -132,15 +132,25 @@ async def reflector(state: State) -> Command[Literal["generator", "router"]]:
         newSchemas = list(state.schemas_generations)
         variant = {"id": str(uuid.uuid4()), "content": state.generatorOutput}
         newSchemas.append(variant)
-        update = {"schemas_generations": newSchemas}
+        update = {"schemas_generations": newSchemas,
+                  "actual_number": state.actual_number+1}
         goto = "router"
     return Command(update=update, goto=goto)
 
 
-async def router(state: State) -> Command[Literal["image"]]:
+async def router(state: State) -> Command[Literal["planner", "image"]]:
     print_state(state, "ROUTER")
-    goto = "image"
-    return Command(goto=goto)
+    max = state.diffUser*3
+    update = {}
+    if (state.actual_number == max):
+        goto = "image"
+    else:
+        step = state.diffUser
+        if (state.actual_number % step == step-1):
+            update["difficultyIndex"] = (state.difficultyIndex+1) % 3
+        goto = "planner"
+    print(f"--- ROUTER UPDATE: {update}, GOTO: {goto} ---")
+    return Command(update=update, goto=goto)
 
 
 async def image(state: State) -> Command[Literal["__end__"]]:
@@ -152,12 +162,12 @@ async def image(state: State) -> Command[Literal["__end__"]]:
             f.write(flowchart["content"])
         mmd_name = directoryMer + flowchart["id"] + ".mmd"
         extracted_content = extract_mermaid_from_markdown(flowchart["content"])
-        update["mermamidGenerated"].append(extracted_content)
+        update["mermaidGenerated"].append(extracted_content)
         with open(mmd_name, "w") as f:
             f.write(extracted_content)
         png_name = directoryPNG + flowchart["id"] + ".png"
         convert_mmd_to_png(mmd_name, png_name)
-        update["imageGenerated"].append(png_name)
+        update["imagesGenerated"].append(png_name)
         print(f" -> Converted {mmd_name} to {png_name}")
 
     print("--- IMAGE: All schemas exported. ---")

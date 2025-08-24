@@ -29,6 +29,8 @@ class State(BaseModel):
     )
     promptUser: str = Field(default="")
     diffUser: int = Field(default=0)
+    actual_number: int = Field(default=0)
+    difficultyIndex: int = Field(default=0)
 
 
 class ReflectionOutput(BaseModel):
