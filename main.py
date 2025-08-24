@@ -12,14 +12,17 @@ import os
 
 
 class FlowchartRequest(BaseModel):
-    prompt: str
+    prompt: list[str] = Field(
+        default_factory=list,
+        description="list of processes"
+    )
     difficulty: int = Field(
         gt=0,
         description="Difficulty must be greater than 0"
     )
 
 
-async def main(prompt: str, diff: int):
+async def main(prompt: list, diff: int):
     thread_id = "session-1"
     builder = StateGraph(State)
     builder.add_node("planner", plannerNode)
@@ -44,7 +47,8 @@ async def main(prompt: str, diff: int):
             "promptUser": prompt,
             "diffUser": diff,
             "imagesGenerated": [],
-            "mermaidGenerated": []
+            "mermaidGenerated": [],
+            "topicIndex": 0,
         }
 
     initial = State(**initial_dict)

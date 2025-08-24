@@ -27,10 +27,14 @@ class State(BaseModel):
         default_factory=list,
         description="MermaidCode"
     )
-    promptUser: str = Field(default="")
+    promptUser: list[str] = Field(
+        default_factory=list,
+        description="process"
+        )
     diffUser: int = Field(default=0)
     actual_number: int = Field(default=0)
     difficultyIndex: int = Field(default=0)
+    topicIndex: int = Field(default=0)
 
 
 class ReflectionOutput(BaseModel):

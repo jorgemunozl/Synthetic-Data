@@ -62,7 +62,7 @@ async def plannerNode(state: State) -> Command[Literal["evalSheet"]]:
     chain = prompt | llm
     response = await chain.ainvoke({
         "difficulty": difficulty[state.difficultyIndex],
-        "topic": state.promptUser
+        "topic": state.promptUser[state.topicIndex]
     })
     print(f"--- PLANNER OUTPUT ---\n{response.content}")
     return Command(update={"plannerOutput": response.content, "recursion": 0},
@@ -140,7 +140,7 @@ async def reflector(state: State) -> Command[Literal["generator", "router"]]:
 
 async def router(state: State) -> Command[Literal["planner", "image"]]:
     print_state(state, "ROUTER")
-    max = state.diffUser*3
+    max = state.diffUser*3*len(state.promptUser)
     update = {}
     if (state.actual_number == max):
         goto = "image"
@@ -148,6 +148,8 @@ async def router(state: State) -> Command[Literal["planner", "image"]]:
         step = state.diffUser
         if (state.actual_number % step == step-1):
             update["difficultyIndex"] = (state.difficultyIndex+1) % 3
+        if (state.actual_number % (3*step) == 0):
+            update["topicIndex"] = state.topicIndex + 1
         goto = "planner"
     print(f"--- ROUTER UPDATE: {update}, GOTO: {goto} ---")
     return Command(update=update, goto=goto)
