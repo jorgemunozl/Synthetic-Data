@@ -6,7 +6,7 @@ data = {
         "Create a cooking recipe flowchart",
         "Design a meal planning workflow", 
         "Build a kitchen organization process"
-    ],  # Now using list of prompts
+    ], 
     "difficulty": 1
 }
 
@@ -20,3 +20,13 @@ if response.status_code == 200:
 else:
     print(f"Error: {response.status_code}")
     print(f"Response: {response.text}")
+
+"""curl -X POST "http://localhost:8000/download-zip"      -H "Content-Type: application/json"      -d '{
+       "prompt": [
+        "Create a cooking recipe flowchart",
+        "Design a meal planning workflow", 
+        "Build a kitchen organization process"
+       ],
+       "difficulty": 1
+     }'      -o flowchart.zip
+"""
