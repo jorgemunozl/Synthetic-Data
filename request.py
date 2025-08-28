@@ -16,8 +16,7 @@ response = requests.post(url, json=data)
 if response.status_code == 200:
     with open("batch_cooking_flowcharts.zip", "wb") as f:
         f.write(response.content)
-    print("✅ ZIP file downloaded successfully as 'batch_cooking_flowcharts.zip'")
-    print(f"📦 File size: {len(response.content)} bytes")
+    print(f"File size: {len(response.content)} bytes")
 else:
-    print(f"❌ Error: {response.status_code}")
+    print(f"Error: {response.status_code}")
     print(f"Response: {response.text}")
