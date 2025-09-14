@@ -1,0 +1,11 @@
+curl -X POST "http://localhost:8000/download-zip"      -H "Content-Type: application/json"      -d '{
+       "prompt": [
+        "Create a cooking recipe flowchart",
+        "Design a meal planning workflow", 
+        "Build a kitchen organization process"
+       ],
+       "difficulty": 1
+     }'      -o flowchart.zip
+
+
+docker run -p 8000:8000 --env-file .env synthetic-data
