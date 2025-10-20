@@ -1,0 +1,44 @@
+name: ci-prod
+
+om: 
+    push:
+        branches: [master]
+        paths:
+            - "src/**"
+            - "uv.lock"
+            - "pyproject.toml"
+    pull_request:
+        branches: [master]
+        paths:
+            - "src/**"
+            - "uv.lock"
+            - "pyproject.toml"
+    workflow_dispatch: {}
+
+concurrency:
+    group: ci-prod-${{github.ref}}
+    cancel-in-progress: true
+
+jobs:
+    ci_prod:
+        name: ci-prod
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: setup_python
+              uses: actions/setup_python@v5
+              with:
+                python-version: "3.12"
+            - name: setup_uv
+              uses: astral-sh/setup-uv@v3
+            - name: create_uv_venv
+              run: uv venv
+            - name: install_deps
+              run: uv pip install -e . ruff pytest pytest-cov mypy
+            - name: export venv bin to path
+              run: echo "$PWD/.venv/bin" >> $GITHUB_PATH
+            - name: lint
+              run: make lint
+            - name: format
+              run: make format
