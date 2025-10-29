@@ -1,0 +1,12 @@
+services:
+  generate-flowcharts-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: generate-flowcharts-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
