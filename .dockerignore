@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.git/
+.env
+.venv
+*.zip
+images/
+flowcharts/
+flowcharts_files/
+mermaid/
+Mermaids/
+checkpoint.sqlite
