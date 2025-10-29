@@ -1,13 +1,29 @@
-import asyncio
 from nodes import plannerNode, generatorNode, reflector
 from nodes import evalSheetNode, image, router
-from src.state import State
+from state import State
 from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langchain_core.runnables import RunnableConfig
+from fastapi import FastAPI, status
+from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
+import zipfile
+import tempfile
+import os
 
 
-async def main(run_first_time: bool):
+class FlowchartRequest(BaseModel):
+    prompt: list[str] = Field(
+        default_factory=list,
+        description="list of processes"
+    )
+    difficulty: int = Field(
+        gt=0,
+        description="Difficulty must be greater than 0"
+    )
+
+
+async def main(prompt: list, diff: int):
     thread_id = "session-1"
     builder = StateGraph(State)
     builder.add_node("planner", plannerNode)
@@ -19,49 +35,75 @@ async def main(run_first_time: bool):
     builder.add_edge(START, "planner")
     builder.add_edge("image", END)
 
-    if run_first_time:
-        initial_dict = {
+    initial_dict = {
             "messages": [],
-            "seed": "",
-            "number_generations": 0,
-            "actual_number": 0,
             "plannerOutput": "",
             "generatorOutput": "",
-            "difficultyIndex": 0,
-            "topicIndex": 0,
             "evalSheet": "",
             "recursion": 0,
+            "difficultyIndex": 0,
+            "actual_number": 0,
             "schemas_generations": [],
-            "score": 0.0
+            "score": 0.0,
+            "promptUser": prompt,
+            "diffUser": diff,
+            "imagesGenerated": [],
+            "mermaidGenerated": [],
+            "topicIndex": 0,
         }
-    else:
-        async with AsyncSqliteSaver.from_conn_string(
-            "checkpoint.sqlite"
-        ) as saver:
-            graph = builder.compile(checkpointer=saver)
-            snapshot = await graph.aget_state(
-                config={"configurable": {"thread_id": thread_id}}
-            )
-            initial_dict = dict(snapshot.values)
 
     initial = State(**initial_dict)
-
-    async with AsyncSqliteSaver.from_conn_string("checkpoint.sqlite") as saver:
-        graph = builder.compile(checkpointer=saver)
-        result = await graph.ainvoke(
+    graph = builder.compile()
+    result = await graph.ainvoke(
             initial,
             config=RunnableConfig(
                 recursion_limit=10_000,
                 configurable={"thread_id": thread_id}
             )
         )
-        print(type(result))
-        """
-        snapshot = await graph.aget_state(
-            config={"configurable": {"thread_id": thread_id}}
-        )
-        latest_state = snapshot.values
-"""
+    return result["imagesGenerated"], result["mermaidGenerated"]
 
-if __name__ == "__main__":
-    asyncio.run(main(True))
+app = FastAPI()
+
+
+@app.post("/download-zip")
+async def create_zip(request: FlowchartRequest):
+    images, mermaid = await main(request.prompt, request.difficulty)
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_file:
+        zip_path = tmp_file.name
+
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for i in range(len(images)):
+            if os.path.exists(images[i]):
+                filename = os.path.basename(images[i])
+                zipf.write(images[i], f"images/{filename}")
+            else:
+                filename = os.path.basename(images[i])
+                zipf.writestr(f"images/{filename}",
+                              f"Placeholder for {images[i]}")
+            if i < len(mermaid):
+                mermaid_filename = os.path.basename(images[i])[:-4] + ".mmd"
+                zipf.writestr(f"mermaid/{mermaid_filename}", mermaid[i])
+
+    return FileResponse(
+        zip_path,
+        media_type="application/zip",
+        filename="generated_files.zip",
+        headers={
+            "Content-Disposition": "attachment; filename=generated_files.zip"
+        }
+    )
+
+
+@app.get("/healthcheck")
+async def healthcheck():
+    try:
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"status": "ok", "details": "GenerateFLowCharts v1"}
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"status": "error", "detail": str(e)}
+        )
