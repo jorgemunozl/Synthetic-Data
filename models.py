@@ -15,4 +15,3 @@ class ModelResponse(BaseModel):
     prompt_task: Optional[str] = None
     answer: Optional[str] = None
 
-

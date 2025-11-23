@@ -1,6 +1,5 @@
 import asyncio
-import json
-from nodes import (STT, function_calling, TTS, VLA, router)
+from nodes import (STT, function_calling, TTS, VLA, router, supervisor)
 from state import State
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
@@ -13,6 +12,7 @@ async def main(run_first_time: bool):
     builder.add_node("function_calling", function_calling)
     builder.add_node("TTS", TTS)
     builder.add_node("router", router)
+    builder.add_node("supervisor", supervisor)
     #builder.add_node("vision_model", vision_model)
     builder.add_node("VLA", VLA)
     builder.add_edge(START, "STT")
@@ -22,6 +22,7 @@ async def main(run_first_time: bool):
         initial_dict = {
             "messages": [],
             "number_step": 0,
+            "tts": "",
             "human_prompt": "",
             "step_limit": 2,
         }

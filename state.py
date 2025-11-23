@@ -10,6 +10,10 @@ class State(BaseModel):
         default_factory=list,
         description="Conversation history messages",
     )
+    tts: str = Field(
+        default="",
+        description=""
+    )
     number_step: int = Field(
         default=0,
         description="Total number of generations"
