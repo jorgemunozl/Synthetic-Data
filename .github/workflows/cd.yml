@@ -1,1 +1,31 @@
-name: 
+name: CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up deployment environment
+        run: |
+          echo "Setting up deployment environment..."
+
+      - name: Deploy application
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+        run: |
+          echo "Deploying to production server..."
+          ssh -i $SSH_PRIVATE_KEY user@$SERVER_IP "
+            cd /var/www/app &&
+            git pull origin main &&
+            systemctl restart myapp.service
+          "
