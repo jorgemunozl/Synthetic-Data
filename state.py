@@ -2,7 +2,7 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from typing import Annotated
 from pydantic import BaseModel, Field
-from models import ModelResponse
+from models import ModelResponse, Decision
 
 
 class State(BaseModel):
@@ -15,10 +15,10 @@ class State(BaseModel):
         description="Total number of generations"
     )
     human_prompt: str = Field(
-        default=0,
+        default="",
         description="Init of the loop, the human say the beginnig."
     )
     model_response: ModelResponse = Field(
-        default=0,
+        default_factory=lambda: ModelResponse(decision=Decision.NO_TASK),
         description="Init of the loop, the human say the beginnig."
     )

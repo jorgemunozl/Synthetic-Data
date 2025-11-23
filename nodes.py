@@ -3,39 +3,19 @@ from langchain_openai import ChatOpenAI
 from typing_extensions import Literal
 from models import ModelResponse
 from state import State
-from prompts import promptSystem, promptHuman, promptImage
-from prompts import promptTopicHum, promptTopicSys, promptValidator
-from openai import OpenAI
-import os
-from constants import directoryOutput, NUM_IMAGES_TO_ADD
 from config import GraphConfig
 from langgraph.types import Command
-import base64
-import uuid
+from cartesia_service import TTSService
+from models import Decision
 
 
-
-async def STT(state: State) -> Command[Literal["function_calling"]]:    
+async def STT(state: State) -> Command[Literal["function_calling"]]:
     prompt = input("Prompt: ")
     print(prompt)
     return Command(
         update={"human_prompt": prompt},
         goto="function_calling"
     )
-
-
-async def TTS(state: State) -> Command[Literal["router"]]:
-    model_prompt = state.model
-
-    
-async def router(state:State) -> Command[Literal["END", "TTS"]]:
-    if state.actual<=2: 
-        goto = "TTS"
-    else:
-        goto = "END"
-    return Command(
-        goto=goto
-        )
 
 
 async def function_calling(state: State) -> Command[Literal["VLA", "TTS"]]:
@@ -45,29 +25,57 @@ async def function_calling(state: State) -> Command[Literal["VLA", "TTS"]]:
     )
     llm = llm.with_structured_output(ModelResponse)
     prompt = ChatPromptTemplate.from_messages([
-        ("system", promptSystem),
-        ("human", promptHuman)
+        ("system", GraphConfig().prompt_system),
+        ("human", state.human_prompt)
     ])
     chain = prompt | llm
-    response = await chain.ainvoke(
-        {"seed_value": state.seed, "topic": state.topic}
-    ) # what?
-    print(f""" -> Creating the schema number {state.number_generations}
-    with topic : {state.topic}""")
-
+    response = await chain.ainvoke({})
+    print("Generating the model response")
     response = ModelResponse.model_validate(response)
     output_model: ModelResponse = response
-    goto = "VLA"
+    print(response)
+    print(response.decision)
+    if response.decision == Decision.TASK:
+        goto = "VLA"
+    else:
+        goto = "TTS"
     return Command(
-        update={"": output_model},
+        update={"model_response": output_model},
         goto=goto
     )
 
 
+async def TTS(state: State) -> Command[Literal["router"]]:
+    speaker = TTSService(
+        api_key="sk_car_Ea5Xgd6vZ5TH8DuNpPuN6q"
+    )
+    #try:
+    #    await speaker.start()
+    #finally:
+    #    await speaker.close()
+
+    model_prompt = state.model_response
+    print(model_prompt.answer)
+    return Command(goto="router")
+
+
+async def router(state: State) -> Command[Literal["__end__", "TTS"]]:
+    if state.number_step < 2:
+        goto = "STT"
+    else:
+        goto = "__end__"
+    return Command(
+        update={"number_step": state.number_step+1},
+        goto=goto
+        )
+
+
 async def VLA(state: State) -> Command[Literal["TTS"]]:
-    print("Action")
+    action_prompt = state.model_response
+    print("Doing using the prompt", action_prompt)
     return Command(goto="TTS")
 
 
-async def vision_model(state: State) -> Command[Literal["TTS"]]:
-    return Command(goto="TTS")
+#async def vision_model(state: State) -> Command[Literal["TTS"]]:
+#    print("Looking")
+#    return Command(goto="TTS")

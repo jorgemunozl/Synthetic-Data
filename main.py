@@ -1,6 +1,6 @@
 import asyncio
 import json
-from nodes import (STT, function_calling, TTS, vision_model, VLA)
+from nodes import (STT, function_calling, TTS, VLA, router)
 from state import State
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
@@ -12,10 +12,11 @@ async def main(run_first_time: bool):
     builder.add_node("STT", STT)
     builder.add_node("function_calling", function_calling)
     builder.add_node("TTS", TTS)
-    builder.add_node("vision_model", vision_model)
+    builder.add_node("router", router)
+    #builder.add_node("vision_model", vision_model)
     builder.add_node("VLA", VLA)
     builder.add_edge(START, "STT")
-    builder.add_edge(END, "END")
+    builder.add_edge("router", END)
 
     if run_first_time:
         initial_dict = {
@@ -47,12 +48,7 @@ async def main(run_first_time: bool):
             config={"configurable": {"thread_id": thread_id}}
         )
         latest_state = snapshot.values
-        num_image = latest_state["number_generations"]
-        print("-> Actual number of generated schemas:", num_image)
-        name = "outputModel/schemas_generations.json"
-        with open(name, "w") as f:
-            json.dump(result["schemas_generations"], f, indent=2)
-        print(" -> Schemas saved!")
+        print(latest_state)
 
 if __name__ == "__main__":
-    asyncio.run(main(False))
+    asyncio.run(main(True))
