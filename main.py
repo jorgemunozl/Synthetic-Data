@@ -1,36 +1,28 @@
 import asyncio
 import json
-from nodes import (generateVariants, createImage, generateTopic, tweaker,
-                   validator)
+from nodes import (STT, function_calling, TTS, vision_model, VLA)
 from state import State
-from langgraph.graph import StateGraph, START
+from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 
 async def main(run_first_time: bool):
     thread_id = "session-1"
     builder = StateGraph(State)
-    builder.add_node("generateVariants", generateVariants)
-    builder.add_node("validator", validator)
-    builder.add_node("tweaker", tweaker)
-    builder.add_node("createImage", createImage)
-    builder.add_node("generateTopic", generateTopic)
-    builder.add_edge(START, "generateTopic")
+    builder.add_node("STT", STT)
+    builder.add_node("function_calling", function_calling)
+    builder.add_node("TTS", TTS)
+    builder.add_node("vision_model", vision_model)
+    builder.add_node("VLA", VLA)
+    builder.add_edge(START, "STT")
+    builder.add_edge(END, "END")
 
     if run_first_time:
         initial_dict = {
             "messages": [],
-            "seed": "",
-            "actual_number": 0,
-            "topic": "",
-            "number_generations": 0,
-            "schemas_generations": [],
-            "pathToImage": "",
-            "score": 0,
-            "threshold": 0.7,
-            "modification": "",
-            "recursionLimit": 2,
-            "actualRecursion": 0
+            "number_step": 0,
+            "human_prompt": "",
+            "step_limit": 2,
         }
     else:
         async with AsyncSqliteSaver.from_conn_string(

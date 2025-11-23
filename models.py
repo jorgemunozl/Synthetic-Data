@@ -3,34 +3,14 @@ from pydantic import BaseModel, Field
 from enum import Enum
 
 
-class NodeTypesEnum(str, Enum):
-    START = "start"
-    DECISION = "decision"
-    TASK = "task"
-    END = "end"
+class Decision(str, Enum):
+    """Possible routing decisions returned by the LLM."""
+    TASK = "TASK"
+    NO_TASK = "NO_TASK"
 
 
-class NodesVariant(BaseModel):
-    id: str = Field(description="a")
-    type: NodeTypesEnum = Field(description="")
-    label: str = Field(description="freedom")
-
-
-class ConditionOptionsEnum(str, Enum):
-    YES = "YES"
-    NO = "NO"
-
-
-class EdgesVariant(BaseModel):
-    id: str = Field(description="")
-    from_: str = Field(description="")
-    to: str = Field(description="")
-    condition: Optional[ConditionOptionsEnum] = Field(description="")
-
-
-class GeneratorVariantOutput(BaseModel):
-    name: str = Field(description="")
-    description: str = Field(description="")
-    startNode: str = Field(description="")
-    nodes: list[NodesVariant] = Field(default_factory=list, description="")
-    edges: list[EdgesVariant] = Field(default_factory=list, description="")
+class ModelResponse(BaseModel):
+    """Structured response expected from the LLM."""
+    decision: Decision
+    prompt_task: Optional[str] = None
+    answer: Optional[str] = None
