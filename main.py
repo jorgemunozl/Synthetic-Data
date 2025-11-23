@@ -21,8 +21,8 @@ async def main(run_first_time: bool):
     if run_first_time:
         initial_dict = {
             "messages": [],
+            "text_entry": "",
             "number_step": 0,
-            "tts": "",
             "human_prompt": "",
             "step_limit": 2,
         }

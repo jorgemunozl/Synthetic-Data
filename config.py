@@ -18,3 +18,4 @@ class GraphConfig(BaseModel):
     )
     model_temperature: int = Field(default=1, description="temperature")
     prompt_system: str = model_prompt
+    prompt_system_supervisor: str = "eso"

@@ -10,9 +10,9 @@ class State(BaseModel):
         default_factory=list,
         description="Conversation history messages",
     )
-    tts: str = Field(
+    text_entry: str = Field(
         default="",
-        description=""
+        description="TTS voice"
     )
     number_step: int = Field(
         default=0,
