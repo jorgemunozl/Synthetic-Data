@@ -7,6 +7,32 @@ from config import GraphConfig
 from langgraph.types import Command
 from cartesia_service import TTSService
 from models import Decision
+import asyncio
+
+
+async def text_generator(answer: str):
+    # Split on punctuation but preserve it
+    import re
+    chunks = re.split(r'([.!?\n])', answer)
+
+    buffer = ""
+    for part in chunks:
+        if part.strip() == "":
+            continue
+
+        buffer += part
+
+        # if this part ends a sentence, yield it
+        if part in ".!?\n":
+            yield buffer
+            buffer = ""
+
+    # leftover
+    if buffer.strip():
+        yield buffer
+
+    # allow async systems to breathe
+    await asyncio.sleep(0)
 
 
 async def STT(state: State) -> Command[Literal["function_calling"]]:
@@ -21,7 +47,7 @@ async def STT(state: State) -> Command[Literal["function_calling"]]:
 async def function_calling(state: State) -> Command[Literal["VLA", "TTS"]]:
     llm = ChatOpenAI(
         model=GraphConfig().llm_base,
-        temperature=GraphConfig().model_temperature
+        temperature=GraphConfig().model_temperature,
     )
     llm = llm.with_structured_output(ModelResponse)
     prompt = ChatPromptTemplate.from_messages([
@@ -33,8 +59,6 @@ async def function_calling(state: State) -> Command[Literal["VLA", "TTS"]]:
     print("Generating the model response")
     response = ModelResponse.model_validate(response)
     output_model: ModelResponse = response
-    print(response)
-    print(response.decision)
     if response.decision == Decision.TASK:
         goto = "VLA"
     else:
@@ -49,17 +73,16 @@ async def TTS(state: State) -> Command[Literal["router"]]:
     speaker = TTSService(
         api_key="sk_car_Ea5Xgd6vZ5TH8DuNpPuN6q"
     )
-    #try:
-    #    await speaker.start()
-    #finally:
-    #    await speaker.close()
+    gen = text_generator(state.model_response.answer)
+    try:
+        await speaker.start(gen)
+    finally:
+        await speaker.close()
 
-    model_prompt = state.model_response
-    print(model_prompt.answer)
     return Command(goto="router")
 
 
-async def router(state: State) -> Command[Literal["__end__", "TTS"]]:
+async def router(state: State) -> Command[Literal["__end__", "STT"]]:
     if state.number_step < 2:
         goto = "STT"
     else:
@@ -70,11 +93,14 @@ async def router(state: State) -> Command[Literal["__end__", "TTS"]]:
         )
 
 
-async def VLA(state: State) -> Command[Literal["TTS"]]:
-    action_prompt = state.model_response
-    print("Doing using the prompt", action_prompt)
-    return Command(goto="TTS")
+async def VLA(state: State) -> Command[Literal["superviser"]]:
+    print("Doing task: ", state.model_response.prompt_task)
+    # Assume that it did it well.
+    return Command(goto="superviser")
 
+
+async def supervisor(state: State) -> Command[Literal[""]]:
+    # 
 
 #async def vision_model(state: State) -> Command[Literal["TTS"]]:
 #    print("Looking")
