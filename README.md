@@ -2,6 +2,8 @@
 
 A FastAPI service that orchestrates a LangGraph workflow to generate Mermaid flowcharts with the help of OpenAI models. The app plans, scores, and iterates on each flowchart, exports the final diagrams as both Mermaid source and PNG images, and bundles the results in a downloadable zip file.
 
+>Data used to train **Llama Vision-Instruct 11B**, [REPO HERE](https://github.com/jorgemunozl/Finetunning-Llama-Vision-11b.git).
+
 ## Key Features
 - Multi-node LangGraph pipeline that plans, generates, critiques, and routes flowchart creation (`src/nodes.py`).
 - FastAPI endpoints for health checks and a `/download-zip` endpoint that returns Mermaid and PNG assets.
